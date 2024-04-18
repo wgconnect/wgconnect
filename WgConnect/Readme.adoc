@@ -168,7 +168,7 @@ Send bug reports or feature requests to wgconnect@proton.me
 
 == Donations
 
-If you find this application useful and would like to contribute to past, present, and future development, here are several options:
+If you find this application useful and would like to contribute to past, present, and future developments, here are several options:
 
 *Bitcoin(BTC)* address: 31kVcpxapsP66b8way9HG9tb6wkfhtxCDe
 
