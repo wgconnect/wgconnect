@@ -3,7 +3,7 @@
 
 An IPv4/IPv6 Wireguard server and client written in Java
 
-=== Overview
+== Overview
 
 WgConnect is an open source Java application for dynamically creating IPv4 and IPv6 Wireguard tunnels.
 
@@ -22,9 +22,9 @@ WgConnect is derived from the https://github.com/jagornet/dhcp[Jagornet DHCP Ser
 WgConnect is developed on the https://netbeans.apache.org/front/main/[Apache NetBeans IDE] using https://www.oracle.com/java/technologies/downloads/[Oracle Java JDK], version
 21 or later.
 
-=== Getting Started
+== Getting Started
 
-==== Command options
+=== Command options
 
 [cols=3*]
 |===
@@ -144,7 +144,7 @@ This is equivalent to:
 $ sudo WgConnect -4e -6e
 ----
 
-=== Application Packaging
+== Application Packaging
 
 The distributable Linux application package was created with Java jpackage command.  For example, to create a *rpm* package:
 
@@ -154,19 +154,19 @@ $ <Java directory>/bin/jpackage --verbose --type rpm --input <WgConnect project 
 
 To create a *deb* package, change the *type* option parameter from *rpm* to *deb*.
 
-=== License
+== License
 
 WgConnect is placed under the https://www.gnu.org/licenses/gpl-3.0.en.html[Gnu General Public License, Version 3]
 
-=== Author
+== Author
 
 Copyright 2024 by wgconnect@proton.me
 
-=== Contact
+== Contact
 
 Send bug reports or feature requests to wgconnect@proton.me
 
-=== Donations
+== Donations
 
 If you find this application useful and would like to contribute to past, present, and future development, here are several options:
 
@@ -178,7 +178,7 @@ If you find this application useful and would like to contribute to past, presen
 
 *USDC* address: 0x6ba6005FD938FB93e0B54CFF85276C212afDEbc3
 
-=== Public Key
+== Public Key
 
 ----
 -----BEGIN PGP PUBLIC KEY BLOCK-----
