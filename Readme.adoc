@@ -1,0 +1,197 @@
+
+= WgConnect
+
+An IPv4/IPv6 Wireguard server and client written in Java
+
+== Overview
+
+WgConnect is an open source Java application for dynamically creating IPv4 and IPv6 Wireguard tunnels.
+
+Each invocation works simultaneously as both a server and a client.
+
+A WgConnect client sends unicast/multicast configuration packets from the specified/default local IP address and port to the specified/default
+remote IP address and port.
+
+A WgConnect server continuously waits for unicast/multicast configuration packets from a WgConnect client on the specified/default local IP address and port.
+
+The default method for creating the IP addresses for the Wireguard tunnels is to derive the addresses from the specified/default tunnel network prefix and the IP address of the underlying physical network device.
+For example, for a tunnel network prefix of 10.0.0.0/8 and and physical network device address of 192.1.68.123, the Wireguard tunnel address for this device would be 10.1.68.123.
+
+WgConnect is derived from the https://github.com/jagornet/dhcp[Jagornet DHCP Server Community Edition].
+
+WgConnect is developed on the https://netbeans.apache.org/front/main/[Apache NetBeans IDE] using https://www.oracle.com/java/technologies/downloads/[Oracle Java JDK], version
+21 or later.
+
+== Getting Started
+
+=== Command options
+
+[cols=3*]
+|===
+.2+h|Option
+2+h|Explanation
+h|Default
+h|Example
+
+.2+|-4e, --4enable
+2+|Enable V4 support.
+|false
+|_$ sudo WgConnect -4e
+
+.2+|-4n, --4netif
+2+|Specify the local V4 interfaces for the Wireguard tunnels.
+Invoke without arguments to use all the local V4 network interfaces or use the arguments to list specific network interfaces, separated by spaces.
+|none
+|*$ sudo WgConnect -4n enp1s0 enp2s0*
+
+.2+|-4a, --4addr
+2+|Specify the local V4 addresses for the Wireguard tunnels.
+Invoke without arguments to use all the local V4 addresses or use the arguments to list specific addresses, separated by spaces.
+|none
+|$ sudo WgConnect -4a 192.168.1.23
+
+.2+|-4r, --4remote
+2+|Specify the list of remote V4 addresses for the Wireguard tunnels, separated by spaces.
+Note: If no remote V4 addresses are listed, then any specified local interfaces or local addresses will use multicast packets.
+|none
+|$ sudo WgConnect -4r 192.168.1.23
+
+.2+|-4m, --4mcastaddr
+2+|Specify the local V4 multicast address for multicast packets.
+|224.0.0.1
+|$ sudo WgConnect -4m 224.0.0.1
+
+.2+|-4p, --4port
+2+|Specify the local V4 port number.
+|268
+|$ sudo WgConnect -4p 268
+
+.2+|-4t, --4tunnel
+2+|Specify the network portion of the local V4 tunnel addresses.
+|10.0.0.0/8
+|$ sudo WgConnect -4t 10.0.0.0/8
+
+.2+|-6e, --6enable
+2+|Enable V6 support.
+|false
+|$ sudo WgConnect -6e
+
+.2+|-6n, --6netif
+2+|Specify the local V6 network interfaces for the Wireguard tunnels.
+Invoke without arguments to use all the local V6 network interfaces or use the arguments to list specific network interfaces, separated by spaces.
+|none
+|$ sudo WgConnect -6n enp1s0 enp2s0
+
+.2+|-6a, --6addr
+2+|Specify the local V6 addresses for the Wireguard tunnels.
+Invoke without arguments to use all the local V6 addresses or use the arguments to list specific addresses, separated by spaces.
+|none
+|$ sudo WgConnect -6a 1234:5678:90ab:cdef:fedc:ba09:8765:4321
+
+.2+|-6r, --6remote
+2+|Specify the list of remote V6 addresses for the Wireguard tunnels, separated by spaces.
+Note: If no remote V6 addresses are listed, then any specified local interfaces or local addresses will use multicast packets.
+|none
+|$ sudo WgConnect -6r 1234:5678:90ab:cdef:fedc:ba09:8765:4321
+
+.2+|-6m, --6mcastaddr
+2+|Specify the local V6 multicast address for multicast packets.
+|ff7E:230::1234
+|$ sudo WgConnect -6m ff7E:230::1234
+
+.2+|-6p, --6port
+2+|Specify the local V6 port number.
+|547
+|$ sudo WgConnect -6p 547
+
+.2+|-6t, --6tunnel
+2+|Specify the network portion of the local V6 tunnel addresses.
+|fc00::0/16
+|$ sudo WgConnect -6t fc00::0/16
+
+.2+|-k, --keepalive
+2+|Specify the persistent keepalive interval for all Wireguard tunnels.
+|0
+|$ sudo WgConnect -4e -6e -k 5
+
+.2+|-g, --gui
+2+|Enable the GUI.
+|false
+|$ sudo WgConnect -4e -6e -g
+
+.2+|-h, --help
+2+|Show the help page, then exit.
+|false
+|$ sudo WgConnect -h
+
+.2+|-v, --version
+2+|Show the version information, then exit.
+|false
+|$ sudo WgConnect -v
+
+|===
+
+The simplest invocation of WgConnect is as a multicast IPv4/IPv6 server/client utilizing the default multicast IPv4/IPv6 addresses and ports.
+WgConnect should be run as root, i.e.:
+
+----
+$ sudo WgConnect
+----
+
+This is equivalent to:
+
+----
+$ sudo WgConnect -4e -6e
+----
+
+== Application Packaging
+
+The distributable Linux application package was created with Java jpackage command.  For example, to create a *rpm* package:
+
+----
+$ <Java directory>/bin/jpackage --verbose --type rpm --input <WgConnect project directory>/dist/ --dest . --name WgConnect --main-jar <WgConnect project directory>/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m 
+----
+
+To create a *deb* package, change the *type* option parameter from *rpm* to *deb*.
+
+== License
+
+WgConnect is placed under the https://www.gnu.org/licenses/gpl-3.0.en.html[Gnu General Public License, Version 3]
+
+== Author
+
+Copyright 2024 by wgconnect@proton.me
+
+== Contact
+
+Send bug reports or feature requests to wgconnect@proton.me
+
+== Donations
+
+If you find this application useful and would like to contribute to past, present, and future developments, here are several options:
+
+*Bitcoin(BTC)* address: 31kVcpxapsP66b8way9HG9tb6wkfhtxCDe
+
+*Ethereum(ETH)* address: 0x837A648591b6222DB0890Bc001962C9862Fe1d19
+
+*Tether(USDT)* address: 0xe6851C81371Ea8F40AC55AAF46727619D912D58A
+
+*USDC* address: 0x6ba6005FD938FB93e0B54CFF85276C212afDEbc3
+
+== Public Key
+
+----
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mDMEZhrqOxYJKwYBBAHaRw8BAQdA2DuedCCMaVrKxhn0pHbINztNURbt1lYElIia
+rI6Nc+m0H3dnY29ubmVjdCA8d2djb25uZWN0QHByb3Rvbi5tZT6ImQQTFgoAQRYh
+BAUnNfUhv7DJn4Csitv/n2IXPQsABQJmGuo7AhsDBQkFo5qABQsJCAcCAiICBhUK
+CQgLAgQWAgMBAh4HAheAAAoJENv/n2IXPQsAuZwA/1nuXXj8vt7ZdYnYpffWkKVI
+Cw1jzJ7Zfr6eMRhFG/RNAP41h0wXT+p67hwKq3reZJqtD/H2FupVIH2ttMs2O/yg
+D7g4BGYa6jsSCisGAQQBl1UBBQEBB0BN3BwwwZMEJnmEoTZnA2eLIxzqytpX/Sm6
++ucw3dm7ZwMBCAeIfgQYFgoAJhYhBAUnNfUhv7DJn4Csitv/n2IXPQsABQJmGuo7
+AhsMBQkFo5qAAAoJENv/n2IXPQsAZ/wA/3jtyx+rbQMQqkFuYWAXH0BaC73EdNfM
+BGtyIFK9Q/87AP902yEVtw0vq/soVO5muBXQ6B+duO3Mv3J9n9bpE0B2DQ==
+=09yp
+-----END PGP PUBLIC KEY BLOCK-----
+----
