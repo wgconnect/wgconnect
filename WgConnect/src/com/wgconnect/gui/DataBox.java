@@ -1,12 +1,12 @@
 /*
- * Copyright 2024 wgdhcp@protonmail.com. All Rights Reserved.
+ * Copyright 2024 wgconnect@proton.me. All Rights Reserved.
  *
- * WgDhcp is free software: you can redistribute it and/or modify
+ * WgConnect is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * WgDhcp is distributed in the hope that it will be useful,
+ * WgConnect is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
@@ -18,8 +18,8 @@
 package com.wgconnect.gui;
 
 import com.wgconnect.core.util.WgConnectLogger;
-import javafx.geometry.Pos;
 
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
