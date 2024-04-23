@@ -146,10 +146,10 @@ $ sudo WgConnect -4e -6e
 
 == Application Packaging
 
-The distributable Linux application package was created with Java jpackage command.  For example, to create a *rpm* package:
+A distributable Linux application package can be created with Java jpackage command.  For example, to create a *rpm* package:
 
 ----
-$ <Java directory>/bin/jpackage --verbose --type rpm --input <WgConnect project directory>/dist/ --dest . --name WgConnect --main-jar <WgConnect project directory>/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m 
+$ jpackage --verbose --type rpm --input WgConnect/dist/ --dest . --name WgConnect --main-jar WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m 
 ----
 
 To create a *deb* package, change the *type* option parameter from *rpm* to *deb*.
