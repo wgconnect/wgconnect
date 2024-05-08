@@ -18,6 +18,7 @@
 package com.wgconnect.machine.processor;
 
 import com.wgconnect.WgConnect;
+
 import java.net.InetAddress;
 
 import com.wgconnect.core.message.V6Message;
