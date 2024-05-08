@@ -1316,11 +1316,11 @@ public class V4Machine implements Runnable {
                 }
 
                 wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
-                    Wg.OPTION_PEER, tunnel.getRemotePublicKey(), 
+                    Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                     Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv4Address.PREFIX_LEN_SEPARATOR + Constants.V4_SUBNET_MASK_32,
                     Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
-                    WgConnect.getPersistentKeepalive() > 0 ? Wg.OPTION_PERSISTENT_KEEPALIVE : "",
-                    WgConnect.getPersistentKeepalive() > 0 ? Integer.toString(WgConnect.getPersistentKeepalive()) : ""
+                    Wg.OPTION_PERSISTENT_KEEPALIVE,
+                    Integer.toString(WgConnect.getPersistentKeepalive())
                 );
                 
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
@@ -1353,8 +1353,8 @@ public class V4Machine implements Runnable {
                 Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                 Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv4Address.PREFIX_LEN_SEPARATOR + Constants.V4_SUBNET_MASK_32,
                 Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
-                WgConnect.getPersistentKeepalive() > 0 ? Wg.OPTION_PERSISTENT_KEEPALIVE : "",
-                WgConnect.getPersistentKeepalive() > 0 ? Integer.toString(WgConnect.getPersistentKeepalive()) : ""
+                Wg.OPTION_PERSISTENT_KEEPALIVE,
+                Integer.toString(WgConnect.getPersistentKeepalive())
             );
             
             if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
