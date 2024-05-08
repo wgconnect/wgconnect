@@ -159,8 +159,7 @@ public class ConnectConfig {
         EntityManager em = databaseMgr.getEntityManager();
         
         if (em != null) {
-            TypedQuery<PersistenceTunnel> query = em.createNamedQuery(PersistenceTunnel.QUERY_NAME_ALL_TUNNELS,
-                PersistenceTunnel.class);
+            TypedQuery<PersistenceTunnel> query = em.createNamedQuery(PersistenceTunnel.QUERY_NAME_ALL_TUNNELS, PersistenceTunnel.class);
             for (PersistenceTunnel t : query.getResultList()) {
                 persistenceTunnels.add(t);
             }
