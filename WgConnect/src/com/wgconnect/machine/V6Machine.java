@@ -76,7 +76,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -288,7 +287,6 @@ public class V6Machine implements Runnable {
     
     public synchronized String generateNextTunnelNet(String tunnelNet) {
         IPAddressString tunnelNetIPAddrStr = new IPAddressString(StringUtils.substringBefore(tunnelNet, IPv6Address.PREFIX_LEN_SEPARATOR));
-        int tunnelNetPrefixLen = Integer.parseInt(StringUtils.substringAfter(tunnelNet, IPv6Address.PREFIX_LEN_SEPARATOR));
         IPv6AddressSegment[] tunnelNetSegments = tunnelNetIPAddrStr.getAddress().toIPv6().getSegments();
         
         int newPrefixLen = 0;
@@ -300,9 +298,6 @@ public class V6Machine implements Runnable {
                 break;
             }
         }
-        
-        int tunnelNetworkPrefixLen = Math.max(newPrefixLen, tunnelNetPrefixLen);
-        tunnelNetworkPrefixLen = Math.min(tunnelNetworkPrefixLen, Constants.V6_MAX_TUNNEL_NETWORK_PREFIX_LEN);
         
         return new IPv6Address(tunnelNetSegments).toInetAddress().getHostAddress() + IPv6Address.PREFIX_LEN_SEPARATOR + newPrefixLen;
     }
