@@ -24,6 +24,7 @@ import com.wgconnect.db.persistence.PersistenceTunnel;
 
 import java.awt.Dimension;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import javafx.application.Application;
@@ -53,7 +54,7 @@ public class Gui extends Application {
     
     private static Gui INSTANCE = null;
     
-    private ScheduledExecutorService executorService;
+    private ScheduledExecutorService scheduledExecutorService;
         
     private static Stage primaryStage;
     private static Scene primaryScene;
@@ -82,7 +83,6 @@ public class Gui extends Application {
     public static final int COLUMN_INDEX_INTERFACES = 6;
     
     private static final String ID_TUNNEL_ROW = "ID_TUNNEL_ROW";
-    private static final String ID_TUNNEL_ROW_SEPARATOR = "ID_TUNNEL_ROW_SEPARATOR";
     
     private static final CircularQueue tunnelRowColors = new CircularQueue("black", "darkblue", "darkgreen");
 
@@ -100,19 +100,23 @@ public class Gui extends Application {
     }
     
     public static Gui waitForWindowShowing() {
-        try {
-            windowIsShowing.await();
-        } catch (InterruptedException ex) {
-            log.info(ex.getMessage());
+        if (INSTANCE != null) {
+            try {
+                windowIsShowing.await();
+            } catch (InterruptedException ex) {
+                log.info(ex.getMessage());
+            }
         }
         
         return INSTANCE;
     }
 
     public static void addTunnel(PersistenceTunnel tunnel) {
-        Platform.runLater(() -> {
-            addTunnelRow(tunnel);
-        });
+        if (INSTANCE != null) {
+            Platform.runLater(() -> {
+                addTunnelRow(tunnel);
+            });
+        }
     }
     
     private static void addTunnelRow(PersistenceTunnel tunnel) {
@@ -132,25 +136,12 @@ public class Gui extends Application {
     }
 
     public static void refreshAllTunnelRows() {
-        for (Node node : primaryVBox.getChildren()) {
-            if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
-                TunnelRow row = (TunnelRow) node;
-                PersistenceTunnel tunnel = WgConnect.getTunnelByTunnelId(row.getTunnel().getId().toString());
-                if (tunnel != null) {
-                    Platform.runLater(() -> {
-                        row.refresh();
-                    });
-                }
-            }
-        }
-    }
-    
-    public static void refreshTunnelRow(PersistenceTunnel tunnel) {
-        if (tunnel != null) {
+        if (INSTANCE != null) {
             for (Node node : primaryVBox.getChildren()) {
                 if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
                     TunnelRow row = (TunnelRow) node;
-                    if (StringUtils.equals(tunnel.getId().toString(), row.getTunnel().getId().toString())) {
+                    PersistenceTunnel tunnel = WgConnect.getTunnelByTunnelId(row.getTunnel().getId().toString());
+                    if (tunnel != null) {
                         Platform.runLater(() -> {
                             row.refresh();
                         });
@@ -160,15 +151,34 @@ public class Gui extends Application {
         }
     }
     
+    public static void refreshTunnelRow(PersistenceTunnel tunnel) {
+        if (INSTANCE != null) {
+            if (tunnel != null) {
+                for (Node node : primaryVBox.getChildren()) {
+                    if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
+                        TunnelRow row = (TunnelRow) node;
+                        if (StringUtils.equals(tunnel.getId().toString(), row.getTunnel().getId().toString())) {
+                            Platform.runLater(() -> {
+                                row.refresh();
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     public static void refreshTunnelRowColumns(PersistenceTunnel tunnel, int... columnIndices) {
-        for (Node node : primaryVBox.getChildren()) {
-            if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
-                TunnelRow row = (TunnelRow) node;
-                if (row.getTunnel().getId().equals(tunnel.getId())) {
-                    Platform.runLater(() -> {
-                        row.refreshColumns(columnIndices);
-                    });
-                    break;
+        if (INSTANCE != null) {
+            for (Node node : primaryVBox.getChildren()) {
+                if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
+                    TunnelRow row = (TunnelRow) node;
+                    if (row.getTunnel().getId().equals(tunnel.getId())) {
+                        Platform.runLater(() -> {
+                            row.refreshColumns(columnIndices);
+                        });
+                        break;
+                    }
                 }
             }
         }
@@ -180,12 +190,14 @@ public class Gui extends Application {
 		windowWidth = screenSize.getWidth();
 	    windowHeight = screenSize.getHeight() * WINDOW_HEIGHT_FACTOR;
         
+        scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+
         primaryStage = stage;
         TextFlow titleText = new TextFlow(new Text(WINDOW_TITLE_TEXT));
         titleText.setStyle(WINDOW_TITLE_STYLE);
         primaryStage.setTitle(((Text) titleText.getChildren().get(0)).getText());
         primaryStage.setOnCloseRequest((WindowEvent t) -> {
-            executorService.shutdownNow();
+            scheduledExecutorService.shutdownNow();
         });
         
         primaryScrollPane = new ScrollPane();
