@@ -133,10 +133,10 @@ public class V6RequestProcessor extends BaseV6Processor {
             Wg wg = new Wg();
             wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
                 Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
-                Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + "/" + Constants.V6_SUBNET_MASK_128,
+                Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv6Address.PREFIX_LEN_SEPARATOR + Constants.V6_SUBNET_MASK_64,
                 Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
-                WgConnect.getPersistentKeepalive() > 0 ? Wg.OPTION_PERSISTENT_KEEPALIVE : "",
-                WgConnect.getPersistentKeepalive() > 0 ? Integer.toString(WgConnect.getPersistentKeepalive()) : ""
+                Wg.OPTION_PERSISTENT_KEEPALIVE,
+                Integer.toString(WgConnect.getPersistentKeepalive())
             );
 
             if (wg.getCommandExitCode() == Wg.getCommandSuccessCode()) {
