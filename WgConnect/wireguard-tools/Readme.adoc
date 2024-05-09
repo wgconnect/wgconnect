@@ -1,11 +1,11 @@
 
-=== https://git.zx2c4.com/wireguard-tools/about/[wireguard-tools] &mdash; tools for configuring https://www.wireguard.com/[WireGuard] 
+== https://git.zx2c4.com/wireguard-tools/about/[wireguard-tools] &mdash; tools for configuring https://www.wireguard.com/[WireGuard] 
 
 This directory builds a library file that allows the WgConnect application to  configure WireGuard tunnels.
 
 **More information may be found at https://www.wireguard.com/[WireGuard.com].**
 
-==== Building
+=== Building
 
 ----
     $ cd src
@@ -14,7 +14,7 @@ This directory builds a library file that allows the WgConnect application to  c
 
 There are no dependencies other than a good C compiler and a sane libc.
 
-==== License
+=== License
 
 WireGuard is released under the https://www.gnu.org/licenses/gpl-2.0.en.html[GPLv2].
 
