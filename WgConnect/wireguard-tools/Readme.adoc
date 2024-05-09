@@ -1,7 +1,7 @@
 
 == https://git.zx2c4.com/wireguard-tools/about/[wireguard-tools] &mdash; tools for configuring https://www.wireguard.com/[WireGuard] 
 
-This directory builds a library file that allows the WgConnect application to  configure WireGuard tunnels.
+This directory builds a library file that allows the WgConnect application to configure WireGuard tunnels.
 
 **More information may be found at https://www.wireguard.com/[WireGuard.com].**
 
