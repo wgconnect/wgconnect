@@ -42,7 +42,7 @@ h|Example
 2+|Specify the local V4 interfaces for the Wireguard tunnels.
 Invoke without arguments to use all the local V4 network interfaces or use the arguments to list specific network interfaces, separated by spaces.
 |none
-|*$ sudo WgConnect -4n enp1s0 enp2s0*
+|$ sudo WgConnect -4n enp1s0 enp2s0
 
 .2+|-4a, --4addr
 2+|Specify the local V4 addresses for the Wireguard tunnels.
