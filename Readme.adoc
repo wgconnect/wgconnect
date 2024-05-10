@@ -174,8 +174,6 @@ If you find this application useful and would like to contribute to past, presen
 
 *Ethereum(ETH)* address: 0x837A648591b6222DB0890Bc001962C9862Fe1d19
 
-*Tether(USDT)* address: 0xe6851C81371Ea8F40AC55AAF46727619D912D58A
-
 *USDC* address: 0x6ba6005FD938FB93e0B54CFF85276C212afDEbc3
 
 == Public Key
