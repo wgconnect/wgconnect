@@ -68,7 +68,7 @@ public class Gui extends Application {
         "-fx-font-weight: bold;" +
         "-fx-font-size: 14px;";
         
-    private static final CountDownLatch windowIsShowing = new CountDownLatch(1);
+    private static final CountDownLatch windowShown = new CountDownLatch(1);
     
     private static double windowWidth;
     private static double windowHeight;
@@ -99,10 +99,10 @@ public class Gui extends Application {
         INSTANCE = this;
     }
     
-    public static Gui waitForWindowShowing() {
+    public static Gui waitForWindowShown() {
         if (INSTANCE != null) {
             try {
-                windowIsShowing.await();
+                windowShown.await();
             } catch (InterruptedException ex) {
                 log.info(ex.getMessage());
             }
@@ -196,7 +196,12 @@ public class Gui extends Application {
         TextFlow titleText = new TextFlow(new Text(WINDOW_TITLE_TEXT));
         titleText.setStyle(WINDOW_TITLE_STYLE);
         primaryStage.setTitle(((Text) titleText.getChildren().get(0)).getText());
-        primaryStage.setOnCloseRequest((WindowEvent t) -> {
+
+        primaryStage.setOnShown((WindowEvent event) -> {
+            windowShown.countDown();
+        });
+
+        primaryStage.setOnCloseRequest((WindowEvent event) -> {
             scheduledExecutorService.shutdownNow();
         });
         
@@ -216,7 +221,5 @@ public class Gui extends Application {
         WgConnect.addRefreshTunnelsHandler(() -> {
             refreshAllTunnelRows();
         });
-        
-        windowIsShowing.countDown();
     }
 }
