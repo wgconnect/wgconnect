@@ -359,7 +359,7 @@ public class WgConnect implements Runnable {
                     }
                 }.start();
                 
-                Gui.waitForWindowShowing();
+                Gui.waitForWindowShown();
             }
             
             // Start the tunnels refresh thread
