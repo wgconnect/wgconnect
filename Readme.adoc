@@ -149,12 +149,12 @@ $ sudo WgConnect -4e -6e
 A distributable Linux application package can be created with the Java https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html[jpackage] command and the https://makeself.io/[makeself] command:
 
 ----
-$ cd <WgConnect NetBeans project directory>
-$ jpackage --verbose --type app-image --input ./dist/ --dest . --name WgConnect --main-jar ./dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
-$ makeself.sh --notemp --bzip2 ./wgconnect ./wgconnect.bz2.sh "WgConnect package"
+$ jpackage --verbose --type app-image --input <absolute path>/dist/ --dest <destination directory> --name wgconnect --main-jar <absolute path>/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
+$ makeself.sh --notemp --bzip2 <destination directory>/wgconnect ./wgconnect.bz2.sh "WgConnect package"
 ----
 
-This will create an executable installation file called *wgconnect.bz2.sh*.
+Where *absolute path* is the absolute pathname to the WgConnect NetBeans development directory and *destination directory* is where the generated app-image folder is placed.
+The *makeself.sh* command creates an executable installation file, *wgconnect.bz2.sh* in this example.
 
 == License
 
