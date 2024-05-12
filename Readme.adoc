@@ -144,13 +144,14 @@ This is equivalent to:
 $ sudo WgConnect -4e -6e
 ----
 
-== Application Packaging
+== Application Package
 
-A distributable, self-extracting Linux application package can be created with the Java https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html[jpackage] command and the https://makeself.io/[makeself] command, i.e.:
+A distributable, self-extracting Linux application package is available at https://drive.proton.me/urls/7YRQ2YYTGC#FDWMptmqnvaQ[wgconnect.bz2.sh].  This package includes all the required dependencies for running *wgconnect*.
+The package was created with the Java https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html[jpackage] command and the https://makeself.io/[makeself] command, i.e.:
 
 ----
-$ /opt/java/graalvm-jdk-21.0.1/bin/jpackage --verbose --type app-image --input /opt/NetBeansProjects/WgConnect/dist/ --dest . --name wgconnect-1.0 --main-jar /opt/NetBeansProjects/WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
-$ makeself.sh --notemp --bzip2 ./wgconnect-1.0 ./wgconnect-1.0.bz2.sh "WgConnect package"
+$ /opt/java/graalvm-jdk-21.0.1/bin/jpackage --verbose --type app-image --input /opt/NetBeansProjects/WgConnect/dist/ --dest . --name wgconnect --main-jar /opt/NetBeansProjects/WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
+$ makeself.sh --notemp --bzip2 ./wgconnect ./wgconnect.bz2.sh "WgConnect package"
 ----
 
 == License
