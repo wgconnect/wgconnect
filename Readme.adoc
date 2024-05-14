@@ -36,98 +36,98 @@ h|Example
 .2+|-4e, --4enable
 2+|Enable V4 support.
 |false
-|$ sudo WgConnect -4e
+|$ sudo wgconnect -4e
 
 .2+|-4n, --4netif
 2+|Specify the local V4 interfaces for the Wireguard tunnels.
 Invoke without arguments to use all the local V4 network interfaces or use the arguments to list specific network interfaces, separated by spaces.
 |none
-|$ sudo WgConnect -4n enp1s0 enp2s0
+|$ sudo wgconnect -4n enp1s0 enp2s0
 
 .2+|-4a, --4addr
 2+|Specify the local V4 addresses for the Wireguard tunnels.
 Invoke without arguments to use all the local V4 addresses or use the arguments to list specific addresses, separated by spaces.
 |none
-|$ sudo WgConnect -4a 192.168.1.23
+|$ sudo wgconnect -4a 192.168.1.23
 
 .2+|-4r, --4remote
 2+|Specify the list of remote V4 addresses for the Wireguard tunnels, separated by spaces.
 Note: If no remote V4 addresses are listed, then any specified local interfaces or local addresses will use multicast packets.
 |none
-|$ sudo WgConnect -4r 192.168.1.23
+|$ sudo wgconnect -4r 192.168.1.23
 
 .2+|-4m, --4mcastaddr
 2+|Specify the local V4 multicast address for multicast packets.
 |224.0.0.1
-|$ sudo WgConnect -4m 224.0.0.1
+|$ sudo wgconnect -4m 224.0.0.1
 
 .2+|-4p, --4port
 2+|Specify the local V4 port number.
 |268
-|$ sudo WgConnect -4p 268
+|$ sudo wgconnect -4p 268
 
 .2+|-4t, --4tunnel
 2+|Specify the network portion of the local V4 tunnel addresses.
 |10.0.0.0/8
-|$ sudo WgConnect -4t 10.0.0.0/8
+|$ sudo wgconnect -4t 10.0.0.0/8
 
 .2+|-6e, --6enable
 2+|Enable V6 support.
 |false
-|$ sudo WgConnect -6e
+|$ sudo wgconnect -6e
 
 .2+|-6n, --6netif
 2+|Specify the local V6 network interfaces for the Wireguard tunnels.
 Invoke without arguments to use all the local V6 network interfaces or use the arguments to list specific network interfaces, separated by spaces.
 |none
-|$ sudo WgConnect -6n enp1s0 enp2s0
+|$ sudo wgconnect -6n enp1s0 enp2s0
 
 .2+|-6a, --6addr
 2+|Specify the local V6 addresses for the Wireguard tunnels.
 Invoke without arguments to use all the local V6 addresses or use the arguments to list specific addresses, separated by spaces.
 |none
-|$ sudo WgConnect -6a 1234:5678:90ab:cdef:fedc:ba09:8765:4321
+|$ sudo wgconnect -6a 1234:5678:90ab:cdef:fedc:ba09:8765:4321
 
 .2+|-6r, --6remote
 2+|Specify the list of remote V6 addresses for the Wireguard tunnels, separated by spaces.
 Note: If no remote V6 addresses are listed, then any specified local interfaces or local addresses will use multicast packets.
 |none
-|$ sudo WgConnect -6r 1234:5678:90ab:cdef:fedc:ba09:8765:4321
+|$ sudo wgconnect -6r 1234:5678:90ab:cdef:fedc:ba09:8765:4321
 
 .2+|-6m, --6mcastaddr
 2+|Specify the local V6 multicast address for multicast packets.
 |ff7E:230::1234
-|$ sudo WgConnect -6m ff7E:230::1234
+|$ sudo wgconnect -6m ff7E:230::1234
 
 .2+|-6p, --6port
 2+|Specify the local V6 port number.
 |547
-|$ sudo WgConnect -6p 547
+|$ sudo wgconnect -6p 547
 
 .2+|-6t, --6tunnel
 2+|Specify the network portion of the local V6 tunnel addresses.
 |fc00::0/16
-|$ sudo WgConnect -6t fc00::0/16
+|$ sudo wgconnect -6t fc00::0/16
 
 .2+|-k, --keepalive
 2+|Specify the persistent keepalive interval for all Wireguard tunnels.
 |0
-|$ sudo WgConnect -4e -6e -k 5
+|$ sudo wgconnect -4e -6e -k 5
 
 .2+|-g, --gui
 2+|Enable the GUI.
 |false
-|$ sudo WgConnect -4e -6e -g
+|$ sudo wgconnect -4e -6e -g
 
 .2+|-h, --help
 2+|Show the help page, then exit.
 |false
-|$ sudo WgConnect -h
+|$ sudo wgconnect -h
 
 .2+|-v, --version
 2+|Show the version information, then exit.
 |false
-|$ sudo WgConnect -v
+|$ sudo wgconnect -v
 
 |===
 
@@ -135,13 +135,13 @@ The simplest invocation of WgConnect is as a multicast IPv4/IPv6 server/client u
 WgConnect should be run as root, i.e.:
 
 ----
-$ sudo WgConnect
+$ sudo wgconnect
 ----
 
 This is equivalent to:
 
 ----
-$ sudo WgConnect -4e -6e
+$ sudo wgconnect -4e -6e
 ----
 
 == Application Package
@@ -150,7 +150,7 @@ A distributable, self-extracting Linux application package is available at https
 The package was created with the Java https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html[jpackage] command and the https://makeself.io/[makeself] command, i.e.:
 
 ----
-$ /opt/java/graalvm-jdk-21.0.1/bin/jpackage --verbose --type app-image --input /opt/NetBeansProjects/WgConnect/dist/ --dest . --name wgconnect --main-jar /opt/NetBeansProjects/WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
+$ jpackage --verbose --type app-image --input /opt/NetBeansProjects/WgConnect/dist/ --dest . --name wgconnect --main-jar /opt/NetBeansProjects/WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
 $ makeself.sh --notemp --bzip2 ./wgconnect ./wgconnect.bz2.sh "WgConnect package"
 ----
 
