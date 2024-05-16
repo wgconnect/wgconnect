@@ -158,20 +158,15 @@ public class Constants {
     public static final String V6_DEFAULT_MULTICAST_INET_ADDR_STR = "ff7E:230::1234";
     public static final String V6_MAX_INET_ADDR_STR = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff";
 
-    public static final int V4_DEFAULT_SUBNET_MASK = 24;
-    public static final int V6_DEFAULT_SUBNET_MASK = 64;
-
     public static final int V4_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN = V4_SUBNET_MASK_8;
-    public static final String V4_DEFAULT_TUNNEL_NETWORK = "10.0.0.0" + IPv4Address.PREFIX_LEN_SEPARATOR +
-        V4_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN;
+    public static final String V4_DEFAULT_TUNNEL_NETWORK = "10.0.0.0" + IPv4Address.PREFIX_LEN_SEPARATOR + V4_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN;
     public static final int V4_MIN_TUNNEL_NETWORK_PREFIX_LEN = IPv4Address.BITS_PER_SEGMENT;
-    public static final int V4_MAX_TUNNEL_NETWORK_PREFIX_LEN = 24;
+    public static final int V4_MAX_TUNNEL_NETWORK_PREFIX_LEN = V4_SUBNET_MASK_24;
     
-    public static final int V6_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN = V6_SUBNET_MASK_16;
-    public static final String V6_DEFAULT_TUNNEL_NETWORK = "fc00::0" + IPv6Address.PREFIX_LEN_SEPARATOR +
-        V6_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN;
+    public static final int V6_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN = V6_SUBNET_MASK_64;
+    public static final String V6_DEFAULT_TUNNEL_NETWORK = "fc00::0" + IPv6Address.PREFIX_LEN_SEPARATOR + V6_DEFAULT_TUNNEL_NETWORK_PREFIX_LEN;
     public static final int V6_MIN_TUNNEL_NETWORK_PREFIX_LEN = IPv6Address.BITS_PER_SEGMENT;
-    public static final int V6_MAX_TUNNEL_NETWORK_PREFIX_LEN = 112;
+    public static final int V6_MAX_TUNNEL_NETWORK_PREFIX_LEN = V6_SUBNET_MASK_112;
     
     static {
         try {
