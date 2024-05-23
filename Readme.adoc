@@ -144,15 +144,19 @@ This is equivalent to:
 $ sudo wgconnect -4e -6e
 ----
 
-== Application Package
+== Application Packages
 
-A distributable, self-extracting Linux application package is available at https://drive.proton.me/urls/7YRQ2YYTGC#FDWMptmqnvaQ[wgconnect.bz2.sh].  This package includes all the required dependencies for running *wgconnect*.
+A distributable, self-extracting Linux application package is available at https://drive.proton.me/urls/7YRQ2YYTGC#FDWMptmqnvaQ[wgconnect-linux.bz2.sh].  This package includes all the required dependencies for running *wgconnect*.
 The package was created with the Java https://docs.oracle.com/en/java/javase/14/docs/specs/man/jpackage.html[jpackage] command and the https://makeself.io/[makeself] command, i.e.:
 
 ----
 $ jpackage --verbose --type app-image --input /opt/NetBeansProjects/WgConnect/dist/ --dest . --name wgconnect --main-jar /opt/NetBeansProjects/WgConnect/dist/WgConnectAll.jar --main-class com.wgconnect.WgConnect --java-options -Xmx2048m
-$ makeself.sh --notemp --bzip2 ./wgconnect ./wgconnect.bz2.sh "WgConnect package"
+$ makeself.sh --notemp --bzip2 ./wgconnect ./wgconnect-linux.bz2.sh "WgConnect package"
 ----
+
+== Todo
+
+* Support for other operating systems (BSD Unix, Windows, Real-time OSes)
 
 == License
 
