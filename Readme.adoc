@@ -5,11 +5,11 @@ An IPv4/IPv6 Wireguard connection server and client written in Java
 
 == Overview
 
-WgConnect is an open source Java application for dynamically creating IPv4 and IPv6 Wireguard tunnels.
+WgConnect is an open source Java application for dynamically creating IPv4/IPv6 Wireguard tunnels.
 
 Each invocation works simultaneously as both a server and a client.
 
-A WgConnect client sends unicast/multicast configuration packets from the specified/default local IP address and port to the specified/default
+A WgConnect client sends unicast/multicast configuration packets from a specified/default local IP address and port to a specified/default
 remote IP address and port.
 
 A WgConnect server continuously waits for unicast/multicast configuration packets from a WgConnect client on the specified/default local IP address and port.
