@@ -42,11 +42,11 @@ import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -423,7 +423,8 @@ public class Utils {
             .filter(i -> i.getName().startsWith(ifPrefix))
             .forEachOrdered(i -> ifNames.add(i.getName()));
         
-        return ifNames.stream().sorted().toList();
+        return ifNames.stream().sorted().collect(Collectors.toList());
+
     }
     
     public static String getNextAvailableNetIfName(String ifPrefix, long currentIfaceNum) {
