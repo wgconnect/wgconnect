@@ -1412,7 +1412,7 @@ public class WgConnect implements Runnable {
         return wgConnectTunnels
             .stream()
             .filter(t -> t.getLocalPhysInetAddr() != null && StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr))
-            .toList();
+            .collect(Collectors.toList());
     }
     
     public static List<PersistenceTunnel> getAllTunnels() {
@@ -1423,14 +1423,14 @@ public class WgConnect implements Runnable {
         return wgConnectTunnels
             .stream()
             .filter(t -> InetAddressValidator.getInstance().isValidInet4Address(t.getLocalPhysInetAddr()))
-            .toList();
+            .collect(Collectors.toList());
     }
     
     public static List<PersistenceTunnel> getV6Tunnels() {
         return wgConnectTunnels
             .stream()
             .filter(t -> InetAddressValidator.getInstance().isValidInet6Address(t.getLocalPhysInetAddr()))
-            .toList();
+            .collect(Collectors.toList());
     }
     
     public static void removeTunnel(PersistenceTunnel tunnel) {
