@@ -23,11 +23,11 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.spi.PersistenceUnitInfo;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -83,6 +83,6 @@ public class JpaEntityManagerFactory {
         return entityClasses
             .stream()
             .map(Class::getName)
-            .toList();
+            .collect(Collectors.toList());
     }
 }
