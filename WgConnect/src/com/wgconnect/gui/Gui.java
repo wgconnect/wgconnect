@@ -100,14 +100,12 @@ public class Gui extends Application {
     }
     
     public static Gui waitForWindowShown() {
-        if (INSTANCE != null) {
-            try {
-                windowShown.await();
-            } catch (InterruptedException ex) {
-                log.info(ex.getMessage());
-            }
+        try {
+            windowShown.await();
+        } catch (InterruptedException ex) {
+            log.info(ex.getMessage());
         }
-        
+
         return INSTANCE;
     }
 
