@@ -26,7 +26,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.Polygon;
 
 /**
  * ColumnBox
@@ -66,7 +65,7 @@ public class ColumnBox extends VBox {
     }
     
     public void addRowSeparator(Node separator) {
-        getChildren().addLast(separator);
+        getChildren().add(separator);
     }
     
     public void addElements(ElementBox... elements) {
