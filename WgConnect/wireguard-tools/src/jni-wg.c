@@ -191,7 +191,7 @@ void jni_out_printf(char *fmt, ...) {
                 fprintf(jniOut->stream, "%u", uval);
                 break;
             case 'x':
-                uval = va_arg(ap, uint);
+                uval = va_arg(ap, unsigned int);
                 fprintf(jniOut->stream, "%x", uval);
                 break;
             default:
