@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 #
 # Copyright (C) 2015-2020 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
-# Copyright (C) 2022 wgdhcp@protonmail.com.
+# Copyright (C) 2024 wgconnect@proton.me.
 
 DESTDIR ?=
-LIBDIR ?= ../../src/com/wgtools/
+#LIBDIR ?= ../../src/com/wgtools/
 NATIVESBASEDIR ?= ./natives/
 NATIVESDIR ?= 
 
@@ -36,6 +36,7 @@ NATIVESDIR ?= $(NATIVESBASEDIR)linux_64
 endif
 endif
 ifeq ($(PLATFORM),freebsd)
+CFLAGS += -I/usr/local/openjdk11/include -I/usr/local/openjdk11/include/freebsd
 LDLIBS += -lnv
 ifeq ($(ARCH),x86_64)
 NATIVESDIR ?= $(NATIVESBASEDIR)linux_64
