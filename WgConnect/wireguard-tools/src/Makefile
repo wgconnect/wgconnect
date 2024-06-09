@@ -4,9 +4,9 @@
 # Copyright (C) 2024 wgconnect@proton.me.
 
 DESTDIR ?=
-#LIBDIR ?= ../../src/com/wgtools/
-NATIVESBASEDIR ?= ./natives/
-NATIVESDIR ?= 
+NATIVESLIBBASEDIR ?= ./natives
+NATIVESLIBDIR ?= 
+NATIVESJARDIR ?= ../../lib
 
 PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')
 ARCH ?= $(shell uname -m)
@@ -30,16 +30,15 @@ CFLAGS += -D'WIREGUARD_TOOLS_VERSION="$(WIREGUARD_TOOLS_VERSION)"'
 endif
 ifeq ($(PLATFORM),linux)
 CFLAGS += -I/usr/lib/jvm/default-runtime/include -I/usr/lib/jvm/default-runtime/include/linux
-NATIVESDIR ?= $(NATIVESBASEDIR)linux_64
-ifeq ($(ARCH),x86_64)
-NATIVESDIR ?= $(NATIVESBASEDIR)linux_64
+ifneq ($(filter $(ARCH),x86_64 amd64),)
+NATIVESLIBDIR := $(NATIVESLIBBASEDIR)/linux_64
 endif
 endif
 ifeq ($(PLATFORM),freebsd)
 CFLAGS += -I/usr/local/openjdk11/include -I/usr/local/openjdk11/include/freebsd
 LDLIBS += -lnv
-ifeq ($(ARCH),x86_64)
-NATIVESDIR ?= $(NATIVESBASEDIR)linux_64
+ifneq ($(filter $(ARCH),x86_64 amd64),)
+NATIVESLIBDIR := $(NATIVESLIBBASEDIR)/bsd_64
 endif
 endif
 ifeq ($(PLATFORM),haiku)
@@ -76,8 +75,8 @@ JAR := @a() { echo "  JAR     $$@"; jar "$$@"; }; a
 endif
 
 libwg.so: wg
-	$(CP) wg ./natives/linux_64/libwg.so
-	$(JAR) cf ../../lib/natives-libraries.jar ./natives
+	$(CP) wg $(NATIVESLIBDIR)/libwg.so
+	$(JAR) cf $(NATIVESJARDIR)/natives-libraries.jar ./natives
 
 wg: $(sort $(patsubst %.c,%.o,$(wildcard *.c)))
 
