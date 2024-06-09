@@ -63,8 +63,8 @@ public class Wg implements Runnable {
     public static final String WG_NATIVE_LIBRARY_BASE_PATH = "/natives/";
 
     public static final String OS_NAME_AIX = "aix";
-    public static final String OS_NAME_LINUX = "linux";
     public static final String OS_NAME_BSD_UNIX = "bsd";
+    public static final String OS_NAME_LINUX = "linux";
     public static final String OS_NAME_OSX = "osx";
     public static final String OS_NAME_WINDOWS = "windows";
     public static final String OS_NAME_DEFAULT = OS_NAME_LINUX;
