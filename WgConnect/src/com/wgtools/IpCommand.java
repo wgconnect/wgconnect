@@ -34,13 +34,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
 /**
- * Ip
+ * IpCommand
  * 
  * @author: wgconnect@proton.me
  */
 class Ip implements InterfaceDeviceManager {
     
-    private static final WgConnectLogger log = WgConnectLogger.getLogger(Ip.class);    
+    private static final WgConnectLogger log = WgConnectLogger.getLogger(IpCommand.class);    
 
     protected static final String COMMAND = "ip";
     protected static final String COMMAND_DIR = "/usr/bin/";
@@ -77,7 +77,7 @@ class Ip implements InterfaceDeviceManager {
         "                    -rc[vbuf] [size] | -n[etns] name | -N[umeric] | -a[ll] |\n" +
         "                    -c[olor]}";
     
-    protected Ip() {}
+    protected IpCommand() {}
 
     @Override
     public int addInterfaceDevice(String deviceName) {
