@@ -64,6 +64,7 @@ public class Wg implements Runnable {
 
     public static final String OS_NAME_AIX = "aix";
     public static final String OS_NAME_LINUX = "linux";
+    public static final String OS_NAME_BSD_UNIX = "bsd";
     public static final String OS_NAME_OSX = "osx";
     public static final String OS_NAME_WINDOWS = "windows";
     public static final String OS_NAME_DEFAULT = OS_NAME_LINUX;
@@ -434,6 +435,36 @@ public class Wg implements Runnable {
         return new CommandLine(new Wg()).execute("set " + deviceName + " " + " private-key " + privateKey);
     }
 
+    public void loadNativeLibrary() {
+        try {
+            StringBuilder nativeLibraryPathname = new StringBuilder(WG_NATIVE_LIBRARY_BASE_PATH);
+            String osName = System.getProperty("os.name");
+            String osArch = System.getProperty("os.arch");
+
+            if (StringUtils.containsIgnoreCase(osName, OS_NAME_AIX)   || StringUtils.containsIgnoreCase(osName, OS_NAME_BSD_UNIX) ||
+                StringUtils.containsIgnoreCase(osName, OS_NAME_LINUX) || StringUtils.containsIgnoreCase(osName, OS_NAME_OSX) ||
+                StringUtils.containsIgnoreCase(osName, OS_NAME_WINDOWS)) {
+                nativeLibraryPathname.append(osName.toLowerCase()).append("_");
+            } else {
+                nativeLibraryPathname.append(OS_NAME_DEFAULT.toLowerCase()).append("_");
+            }
+
+            if (StringUtils.contains(osArch, OS_ARCH_64) || StringUtils.contains(osArch, OS_ARCH_32)) {
+                nativeLibraryPathname.append(osArch);
+            } else {
+                nativeLibraryPathname.append(OS_ARCH_DEFAULT);
+            }
+
+            NativeLoader.loadLibrary(WG_NATIVE_LIBRARY_NAME, nativeLibraryPathname.toString());
+            libraryFileLoaded = true;
+        } catch (IOException ex) {
+            log.error("Load library exception: " + ex);
+            System.err.println("Native code library failed to load.\n");
+            commandErrorString = "Native code library failed to load.";
+            commandExitCode = 1;
+        }
+    }
+    
     /**
      * @param args the command line arguments
      */
@@ -443,41 +474,17 @@ public class Wg implements Runnable {
         CommandLine commandLine = new CommandLine(this);
         
         if (!libraryFileLoaded) {
-            try {
-                StringBuilder nativeLibraryPathname = new StringBuilder(WG_NATIVE_LIBRARY_BASE_PATH);
-                String osName = System.getProperty("os.name");
-                String osArch = System.getProperty("os.arch");
-                
-                if (osName.equalsIgnoreCase(OS_NAME_AIX) || osName.equalsIgnoreCase(OS_NAME_LINUX) ||
-                    osName.equalsIgnoreCase(OS_NAME_OSX) || osName.equalsIgnoreCase(OS_NAME_WINDOWS)) {
-                    nativeLibraryPathname.append(osName.toLowerCase()).append("_");          
-                } else {
-                    nativeLibraryPathname.append(OS_NAME_DEFAULT.toLowerCase()).append("_");
-                }
-                
-                if (StringUtils.equals(osArch, OS_ARCH_64) || StringUtils.equals(osArch, OS_ARCH_32)) {
-                    nativeLibraryPathname.append(osArch);
-                } else {
-                    nativeLibraryPathname.append(OS_ARCH_DEFAULT);
-                }
-                
-                NativeLoader.loadLibrary(WG_NATIVE_LIBRARY_NAME, nativeLibraryPathname.toString());
-                libraryFileLoaded = true;
-            } catch (IOException ex) {
-                log.error("Load library exception: " + ex);
-                System.err.println("Native code library failed to load.\n");
-                commandErrorString = "Native code library failed to load.";
-                commandExitCode = 1;
-                return;
-            }
+            loadNativeLibrary();
         }
         
-        // If there are args, execute the subcommand, else run the basic show subcommand
-        if (args.length > 0) {
-            commandLine.execute(args);
-        } else {
-            String[] new_argv = { "show" };
-            commandLine.execute(new_argv);
+        if (libraryFileLoaded) {
+            // If there are args, execute the subcommand, else run the basic show subcommand
+            if (args.length > 0) {
+                commandLine.execute(args);
+            } else {
+                String[] new_argv = {"show"};
+                commandLine.execute(new_argv);
+            }
         }
     }
     
