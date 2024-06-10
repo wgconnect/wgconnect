@@ -38,7 +38,7 @@ import org.apache.commons.validator.routines.InetAddressValidator;
  * 
  * @author: wgconnect@proton.me
  */
-class Ip implements InterfaceDeviceManager {
+class IpCommand implements InterfaceDeviceManager {
     
     private static final WgConnectLogger log = WgConnectLogger.getLogger(IpCommand.class);    
 
@@ -215,7 +215,7 @@ class Ip implements InterfaceDeviceManager {
         StringBuilder command = new StringBuilder();
         for (String arg : args)
             command.append(arg).append(" ");
-        Ip ip = new Ip();
+        IpCommand ip = new IpCommand();
         ip.executeCommand(command.toString());
     }
 }
