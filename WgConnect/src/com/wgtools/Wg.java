@@ -89,7 +89,7 @@ public class Wg implements Runnable {
     
     private int commandExitCode;
 
-    private static final InterfaceDeviceManager deviceMgr = new Ip();
+    private static final InterfaceDeviceManager deviceMgr = new IpCommand();
     
     public static final String OPTION_ALL = "all";
     public static final String OPTION_INTERFACES = "interfaces";
