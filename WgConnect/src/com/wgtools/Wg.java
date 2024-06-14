@@ -89,7 +89,8 @@ public class Wg implements Runnable {
     
     private int commandExitCode;
 
-    private static final InterfaceDeviceManager deviceMgr = new IpCommand();
+    private static final InterfaceDeviceManager defaultDeviceMgr = new LinuxDeviceManager();
+    private final InterfaceDeviceManager deviceMgr;
     
     public static final String OPTION_ALL = "all";
     public static final String OPTION_INTERFACES = "interfaces";
@@ -118,13 +119,18 @@ public class Wg implements Runnable {
 
     @Spec CommandSpec spec;
 
-    public Wg() {
+    public Wg(InterfaceDeviceManager deviceMgr) {
+        this.deviceMgr = deviceMgr;
         try {
             commandOutputByteArrayStream = new ByteArrayOutputStream();
             commandOutputStream = new PrintStream(commandOutputByteArrayStream, true, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException ex) {
             log.error("Encoding exception: " + ex);
         }
+    }
+    
+    public Wg() {
+        this(defaultDeviceMgr);
     }
     
     public String getPrivateKey() {
@@ -427,7 +433,7 @@ public class Wg implements Runnable {
         return lines;
     }
     
-    public static synchronized InterfaceDeviceManager getLinkDeviceManager() {
+    public synchronized InterfaceDeviceManager getLinkDeviceManager() {
         return deviceMgr;
     }
     
