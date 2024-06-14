@@ -47,7 +47,6 @@ import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.security.KeyPair;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
@@ -280,7 +279,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(remotePhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(remotePhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = Wg.getLinkDeviceManager().getLocalEndpointForInetAddr(remotePhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getLinkDeviceManager().getLocalEndpointForInetAddr(remotePhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
@@ -391,7 +390,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(clientPhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(clientPhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = Wg.getLinkDeviceManager().getLocalEndpointForInetAddr(clientPhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getLinkDeviceManager().getLocalEndpointForInetAddr(clientPhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
