@@ -17,6 +17,8 @@
  */
 package com.wgtools;
 
+import com.google.common.collect.ObjectArrays;
+
 import com.wgconnect.core.util.WgConnectLogger;
 
 import java.io.BufferedReader;
@@ -122,6 +124,8 @@ public class Wg implements Runnable {
     public Wg(InterfaceDeviceManager deviceMgr) {
         this.deviceMgr = deviceMgr;
         try {
+            deviceMgr.init();
+            
             commandOutputByteArrayStream = new ByteArrayOutputStream();
             commandOutputStream = new PrintStream(commandOutputByteArrayStream, true, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException ex) {
@@ -251,32 +255,47 @@ public class Wg implements Runnable {
         return (privateKey != null && publicKey != null && preSharedKey != null);
     }
     
-    public String getPrivateKeyFromInterface(String ifName) {
+    public int setInterfacePrivateKey(String ifName, String privateKey) {
+        executeSubcommand(Set.COMMAND, ifName, Wg.OPTION_PRIVATE_KEY, privateKey);
+        return commandExitCode;
+    }
+    
+    public String getInterfaces() {
+        executeSubcommand(Show.COMMAND, Wg.OPTION_INTERFACES);
+        return commandOutputString;
+    }
+    
+    public String getInterfacePrivateKey(String ifName) {
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PRIVATE_KEY);
-        return commandOutputString != null ? commandOutputString.trim() : null;
+        return commandExitCode == Wg.getCommandSuccessCode() && commandOutputString != null ? commandOutputString.trim() : null;
     }
     
-    public String getPublicKeyFromInterface(String ifName) {
+    public String getInterfacePublicKey(String ifName) {
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PUBLIC_KEY);
-        return commandOutputString != null ? commandOutputString.trim() : null;
+        return commandExitCode == Wg.getCommandSuccessCode() && commandOutputString != null ? commandOutputString.trim() : null;
     }
     
-    public String getPresharedKeyFromInterface(String ifName) {
+    public String getInterfacePresharedKey(String ifName) {
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PRESHARED_KEY);
-        return commandOutputString != null ? commandOutputString.trim() : null;
+        return commandExitCode == Wg.getCommandSuccessCode() && commandOutputString != null ? commandOutputString.trim() : null;
     }
     
-    public int getListenPortFromInterface(String ifName) {
+    public long getInterfaceListenPort(String ifName) {
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_LISTEN_PORT);
-        return commandOutputString != null ? Integer.parseInt(commandOutputString.trim()) : -1;
+        return commandExitCode == Wg.getCommandSuccessCode() && commandOutputString != null ? Integer.parseInt(commandOutputString.trim()) : -1;
     }
     
-    public String getFwmarkFromInterface(String ifName) {
+    public String getInterfaceFwmark(String ifName) {
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_FWMARK);
-        return commandOutputString != null ? commandOutputString.trim() : null;
+        return commandExitCode == Wg.getCommandSuccessCode() && commandOutputString != null ? commandOutputString.trim() : null;
     }
     
-    public List<String> getPeersFromInterface(String ifName) {
+    public int setInterfaceConfigParameters(String ifName, String... parameters) {
+        executeSubcommand(ObjectArrays.concat(Set.COMMAND, ObjectArrays.concat(ifName, parameters)));
+        return commandExitCode;
+    }
+    
+    public List<String> getInterfacePeers(String ifName) {
         List<String> peers = new ArrayList<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PEERS);
@@ -295,7 +314,7 @@ public class Wg implements Runnable {
         return peers;
     }
     
-    public Map<String, String> getEndpointsAsMap(String ifName) {
+    public Map<String, String> getInterfaceEndpointsAsMap(String ifName) {
         Map<String, String> endpoints = new LinkedHashMap<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_ENDPOINTS);
@@ -317,7 +336,7 @@ public class Wg implements Runnable {
         return endpoints;
     }
     
-    public List<String> getEndpointsAsList(String ifName) {
+    public List<String> getInterfaceEndpointsAsList(String ifName) {
         List<String> endpoints = new ArrayList<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_ENDPOINTS);
@@ -336,7 +355,7 @@ public class Wg implements Runnable {
         return endpoints;
     }
     
-    public Map<String, String> getAllowedIpsAsMap(String ifName) {
+    public Map<String, String> getInterfaceAllowedIpsAsMap(String ifName) {
         Map<String, String> allowedIps = new LinkedHashMap<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_ALLOWED_IPS);
@@ -356,7 +375,7 @@ public class Wg implements Runnable {
         return allowedIps;
     }
     
-    public List<String> getAllowedIpsAsList(String ifName) {
+    public List<String> getInterfaceAllowedIpsAsList(String ifName) {
         List<String> allowedIps = new ArrayList<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_ALLOWED_IPS);
@@ -375,7 +394,7 @@ public class Wg implements Runnable {
         return allowedIps;
     }
     
-    public Map<String, String> getPersistentKeepalivesAsMap(String ifName) {
+    public Map<String, String> getInterfacePersistentKeepalivesAsMap(String ifName) {
         Map<String, String> persistentKeepalives = new LinkedHashMap<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PERSISTENT_KEEPALIVE);
@@ -395,7 +414,7 @@ public class Wg implements Runnable {
         return persistentKeepalives;
     }
     
-    public List<String> getPersistentKeepalivesAsList(String ifName) {
+    public List<String> getInterfacePersistentKeepalivesAsList(String ifName) {
         List<String> persistentKeepalives = new ArrayList<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_PERSISTENT_KEEPALIVE);
@@ -414,7 +433,7 @@ public class Wg implements Runnable {
         return persistentKeepalives;
     }
     
-    public List<String> getDumpFromInterface(String ifName) {
+    public List<String> getInterfaceDump(String ifName) {
         List<String> lines = new ArrayList<>();
         
         executeSubcommand(Show.COMMAND, ifName, Wg.OPTION_DUMP);
@@ -433,14 +452,10 @@ public class Wg implements Runnable {
         return lines;
     }
     
-    public synchronized InterfaceDeviceManager getLinkDeviceManager() {
+    public synchronized InterfaceDeviceManager getInterfaceDeviceManager() {
         return deviceMgr;
     }
     
-    public int setWireguardNetworkDevicePrivateKey(String deviceName, String privateKey) {
-        return new CommandLine(new Wg()).execute("set " + deviceName + " " + " private-key " + privateKey);
-    }
-
     public void loadNativeLibrary() {
         try {
             StringBuilder nativeLibraryPathname = new StringBuilder(WG_NATIVE_LIBRARY_BASE_PATH);
@@ -474,7 +489,7 @@ public class Wg implements Runnable {
     /**
      * @param args the command line arguments
      */
-    public void executeSubcommand(String... args) {
+    private void executeSubcommand(String... args) {
         commandOutputByteArrayStream.reset();
         
         CommandLine commandLine = new CommandLine(this);
