@@ -38,7 +38,6 @@ import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.V4Machine;
 import static com.wgconnect.machine.processor.BaseV4Processor.connectConfig;
 
-import com.wgtools.Set;
 import com.wgtools.Wg;
 
 import inet.ipaddr.ipv4.IPv4Address;
@@ -132,14 +131,14 @@ public class V4RequestProcessor extends BaseV4Processor {
             tunnel.setRemoteInterfaceName(remoteInterfaceNameOption.getString());
 
             Wg wg = new Wg();
-            wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
+            wg.setInterfaceConfigParameters(tunnel.getLocalInterfaceName(),
                 Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                 Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv4Address.PREFIX_LEN_SEPARATOR + Constants.V4_SUBNET_MASK_32,
                 Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
                 Wg.OPTION_PERSISTENT_KEEPALIVE,
                 Integer.toString(WgConnect.getPersistentKeepalive())
             );
-
+            
             if (wg.getCommandExitCode() == Wg.getCommandSuccessCode()) {
                 try {
                     tunnel.setState(Constants.V4_TUNNEL_STATUS_REQUEST);
