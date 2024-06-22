@@ -454,7 +454,7 @@ public class Utils {
     }
     
     public static WgInterfaceInfo getWgIfByName(String wgIfName) {
-        return new WgInterfaceInfo(wgIfName).parse(new Wg().getDumpFromInterface(wgIfName));
+        return new WgInterfaceInfo(wgIfName).parse(new Wg().getInterfaceDump(wgIfName));
     }
     
     public static WgInterfaceInfo getWgNetIfByExclusion(String ifPrefix, String remoteInetAddr) {
@@ -498,7 +498,7 @@ public class Utils {
             while (netIfs.hasMoreElements()) {
                 NetworkInterface netIf = netIfs.nextElement();
                 if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V6_IF_NAME_PREFIX)) {
-                    List<String> netIfDump = wg.getDumpFromInterface(netIf.getDisplayName());
+                    List<String> netIfDump = wg.getInterfaceDump(netIf.getDisplayName());
                     wgNetIfs.add(new WgInterfaceInfo(netIf.getDisplayName()).parse(netIfDump));
                 }
             }
@@ -517,7 +517,7 @@ public class Utils {
             while (netIfs.hasMoreElements()) {
                 NetworkInterface netIf = netIfs.nextElement();
                 if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V4_IF_NAME_PREFIX)) {
-                    List<String> netIfDump = wg.getDumpFromInterface(netIf.getDisplayName());
+                    List<String> netIfDump = wg.getInterfaceDump(netIf.getDisplayName());
                     wgNetIfs.add(new WgInterfaceInfo(netIf.getDisplayName()).parse(netIfDump));
                 }
             }
