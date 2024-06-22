@@ -31,6 +31,7 @@ import com.wgconnect.gui.Gui;
 
 import inet.ipaddr.AddressStringException;
 import inet.ipaddr.IPAddress;
+import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IncompatibleAddressException;
 import inet.ipaddr.ipv4.IPv4AddressSegment;
@@ -437,7 +438,7 @@ public class WgConnect implements Runnable {
                     }
                     
                     WgConnect.McastReceiver v4McastReceiver = new WgConnect.McastReceiver(
-                        netIf, v4McastSock, Constants.IPVersion.V4);
+                        netIf, v4McastSock, IPVersion.IPV4);
                     v4McastReceivers.add(v4McastReceiver);
 
                     new Thread() {
@@ -460,7 +461,7 @@ public class WgConnect implements Runnable {
                         inetAddrs.add(inetAddr);
                         
                         WgConnect.McastReceiver v4McastReceiver = new WgConnect.McastReceiver(
-                            netIf, v4McastSock, Constants.IPVersion.V4);
+                            netIf, v4McastSock, IPVersion.IPV4);
                         v4McastReceivers.add(v4McastReceiver);
 
                         new Thread() {
@@ -514,7 +515,7 @@ public class WgConnect implements Runnable {
                     }
                     
                     WgConnect.McastReceiver v6McastReceiver = new WgConnect.McastReceiver(
-                        netIf, v6McastSock, Constants.IPVersion.V6);
+                        netIf, v6McastSock, IPVersion.IPV6);
                     v6McastReceivers.add(v6McastReceiver);
 
                     new Thread() {
@@ -538,7 +539,7 @@ public class WgConnect implements Runnable {
                         inetAddrs.add(inetAddr);
                        
                         WgConnect.McastReceiver v6McastReceiver = new WgConnect.McastReceiver(
-                            netIf, v6McastSock, Constants.IPVersion.V6);
+                            netIf, v6McastSock, IPVersion.IPV6);
                         v6McastReceivers.add(v6McastReceiver);
 
                         new Thread() {
@@ -572,12 +573,12 @@ public class WgConnect implements Runnable {
         
         NetworkInterface networkInterface = null;
         MulticastSocket mcastSock = null;
-        Constants.IPVersion ipVersion;
+        IPVersion ipVersion;
         
         String name;
         
         public McastReceiver(NetworkInterface networkInterface, MulticastSocket mcastSock,
-            Constants.IPVersion ipVersion) {
+            IPVersion ipVersion) {
             this.networkInterface = networkInterface;
             this.mcastSock = mcastSock;
             this.ipVersion = ipVersion;
@@ -602,9 +603,9 @@ public class WgConnect implements Runnable {
                             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
                             mcastSock.receive(packet);
                             
-                            if (ipVersion.isV4()) {
+                            if (ipVersion.isIPv4()) {
                                 v4Machine.processMulticastDiscoverMessage(packet, buffer, packet.getLength());
-                            } else if (ipVersion.isV6()) {
+                            } else if (ipVersion.isIPv6()) {
                                 v6Machine.processMulticastSolicitMessage(packet, buffer, packet.getLength());
                             } else {
                                 log.info("Unknown IP type: {}", ipVersion);
