@@ -31,8 +31,8 @@ import com.wgconnect.db.PersistenceDatabaseManagerImpl;
 import com.wgconnect.db.PersistenceDatabaseManager;
 import com.wgconnect.gui.Gui;
 
-import com.wgtools.Show;
 import com.wgtools.Wg;
+import inet.ipaddr.IPAddress.IPVersion;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -167,10 +167,7 @@ public class ConnectConfig {
         // Check for existing V4/V6 Wireguard tunnels
         List<PersistenceTunnel> nettyLocalAddons = new ArrayList<>();
         Wg wg = new Wg();
-        wg.executeSubcommand(Show.COMMAND, Wg.OPTION_INTERFACES);
-        if (wg.getCommandExitCode() == Wg.getCommandSuccessCode() && wg.getCommandOutputString() != null &&
-            !wg.getCommandOutputString().isBlank()) {
-
+        if (!StringUtils.isEmpty(wg.getInterfaces())) {
             try {
                 Enumeration<NetworkInterface> netIfs = NetworkInterface.getNetworkInterfaces();
                 while (netIfs.hasMoreElements()) {
@@ -187,13 +184,13 @@ public class ConnectConfig {
                         }
 
                         String localTunnelInetAddr = inetAddr;
-                        String privateKey = wg.getPrivateKeyFromInterface(netIf.getDisplayName());
-                        String publicKey = wg.getPublicKeyFromInterface(netIf.getDisplayName());
-                        int listenPort = wg.getListenPortFromInterface(netIf.getDisplayName());
-                        List<String> peers = wg.getPeersFromInterface(netIf.getDisplayName());
-                        Map<String, String> endpoints = wg.getEndpointsAsMap(netIf.getDisplayName());
-                        Map<String, String> allowedIps = wg.getAllowedIpsAsMap(netIf.getDisplayName());
-                        Map<String, String> persistentKeepalives = wg.getPersistentKeepalivesAsMap(netIf.getDisplayName());
+                        String privateKey = wg.getInterfacePrivateKey(netIf.getDisplayName());
+                        String publicKey = wg.getInterfacePublicKey(netIf.getDisplayName());
+                        long listenPort = wg.getInterfaceListenPort(netIf.getDisplayName());
+                        List<String> peers = wg.getInterfacePeers(netIf.getDisplayName());
+                        Map<String, String> endpoints = wg.getInterfaceEndpointsAsMap(netIf.getDisplayName());
+                        Map<String, String> allowedIps = wg.getInterfaceAllowedIpsAsMap(netIf.getDisplayName());
+                        Map<String, String> persistentKeepalives = wg.getInterfacePersistentKeepalivesAsMap(netIf.getDisplayName());
 
                         if (privateKey != null && publicKey != null && listenPort >= 0 && !peers.isEmpty() && !endpoints.isEmpty() &&
                             !allowedIps.isEmpty() && !persistentKeepalives.isEmpty()) {
@@ -224,7 +221,7 @@ public class ConnectConfig {
                                 Optional<PersistenceTunnel> pt = persistenceTunnels
                                     .stream()
                                     .filter(t ->
-                                        t.getInetType().equalsIgnoreCase(Constants.IPVersion.V6.toString()) &&
+                                        t.getInetType().equalsIgnoreCase(IPVersion.IPV6.toString()) &&
                                         StringUtils.equals(t.getLocalPrivateKey(), privateKey) &&
                                         StringUtils.equals(t.getLocalPublicKey(), publicKey) &&
                                         t.getLocalPhysInetListenPort() == listenPort &&
@@ -256,7 +253,7 @@ public class ConnectConfig {
 
                                 PersistenceTunnel tunnel = new PersistenceTunnel();
                                 tunnel.setId(UUID.randomUUID());
-                                tunnel.setInetType(Constants.IPVersion.V6.toString());
+                                tunnel.setInetType(IPVersion.IPV6.toString());
 
                                 tunnel.setRemoteEndpointType(Constants.TUNNEL_ENDPOINT_TYPE_CLIENT);
                                 tunnel.setLocalEndpointType(Constants.TUNNEL_ENDPOINT_TYPE_CLIENT);
@@ -279,7 +276,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(remotePhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(remotePhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = wg.getLinkDeviceManager().getLocalEndpointForInetAddr(remotePhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getInterfaceDeviceManager().getLocalEndpointByInetAddr(remotePhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
@@ -300,13 +297,13 @@ public class ConnectConfig {
                         }
 
                         String serverTunnelInetAddr = inetAddr;
-                        String privateKey = wg.getPrivateKeyFromInterface(netIf.getDisplayName());
-                        String publicKey = wg.getPublicKeyFromInterface(netIf.getDisplayName());
-                        int listenPort = wg.getListenPortFromInterface(netIf.getDisplayName());
-                        List<String> peers = wg.getPeersFromInterface(netIf.getDisplayName());
-                        Map<String, String> endpoints = wg.getEndpointsAsMap(netIf.getDisplayName());
-                        Map<String, String> allowedIps = wg.getAllowedIpsAsMap(netIf.getDisplayName());
-                        Map<String, String> persistentKeepalives = wg.getPersistentKeepalivesAsMap(netIf.getDisplayName());
+                        String privateKey = wg.getInterfacePrivateKey(netIf.getDisplayName());
+                        String publicKey = wg.getInterfacePublicKey(netIf.getDisplayName());
+                        long listenPort = wg.getInterfaceListenPort(netIf.getDisplayName());
+                        List<String> peers = wg.getInterfacePeers(netIf.getDisplayName());
+                        Map<String, String> endpoints = wg.getInterfaceEndpointsAsMap(netIf.getDisplayName());
+                        Map<String, String> allowedIps = wg.getInterfaceAllowedIpsAsMap(netIf.getDisplayName());
+                        Map<String, String> persistentKeepalives = wg.getInterfacePersistentKeepalivesAsMap(netIf.getDisplayName());
 
                         if (privateKey != null && publicKey != null && listenPort >= 0 && !peers.isEmpty() && !endpoints.isEmpty() &&
                             !allowedIps.isEmpty() && !persistentKeepalives.isEmpty()) {
@@ -336,7 +333,7 @@ public class ConnectConfig {
                                 Optional<PersistenceTunnel> pt = persistenceTunnels
                                     .stream()
                                     .filter(t ->
-                                        t.getInetType().equalsIgnoreCase(Constants.IPVersion.V4.toString()) &&
+                                        t.getInetType().equalsIgnoreCase(IPVersion.IPV4.toString()) &&
                                         StringUtils.equals(t.getLocalPrivateKey(), privateKey) &&
                                         StringUtils.equals(t.getLocalPublicKey(), publicKey) &&
                                         t.getLocalPhysInetListenPort() == listenPort &&
@@ -367,7 +364,7 @@ public class ConnectConfig {
 
                                 PersistenceTunnel tunnel = new PersistenceTunnel();
                                 tunnel.setId(UUID.randomUUID());
-                                tunnel.setInetType(Constants.IPVersion.V4.toString());
+                                tunnel.setInetType(IPVersion.IPV4.toString());
 
                                 tunnel.setRemoteEndpointType(Constants.TUNNEL_ENDPOINT_TYPE_CLIENT);
                                 tunnel.setLocalEndpointType(Constants.TUNNEL_ENDPOINT_TYPE_SERVER);
@@ -390,7 +387,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(clientPhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(clientPhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = wg.getLinkDeviceManager().getLocalEndpointForInetAddr(clientPhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getInterfaceDeviceManager().getLocalEndpointByInetAddr(clientPhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
