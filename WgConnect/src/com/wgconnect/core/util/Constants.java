@@ -84,30 +84,6 @@ public class Constants {
     public static final int V6_SUBNET_MASK_112 = IPv6Address.BITS_PER_SEGMENT * 7;
     public static final int V6_SUBNET_MASK_128 = IPv4Address.BITS_PER_SEGMENT * 8;
     
-    public static enum IPVersion {
-        V4("V4"),
-        V6("V6");
-        
-        private final String type;
-        
-        IPVersion(String type) {
-            this.type = type;
-        }
-        
-        public boolean isV4() {
-            return type.equalsIgnoreCase(V4.type);
-        }
-        
-        public boolean isV6() {
-            return type.equalsIgnoreCase(V6.type);
-        }
-        
-        @Override
-        public String toString() {
-            return type;
-        }
-    }
-    
     public static final String V4_TUNNEL_STATUS_DISCOVER = "Discover";
     public static final String V4_TUNNEL_STATUS_OFFER = "Offer";
     public static final String V4_TUNNEL_STATUS_REQUEST = "Request";
