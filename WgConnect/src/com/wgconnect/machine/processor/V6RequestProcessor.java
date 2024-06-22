@@ -40,7 +40,6 @@ import com.wgconnect.db.persistence.PersistenceTunnel;
 import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.V6Machine;
 
-import com.wgtools.Set;
 import com.wgtools.Wg;
 
 import inet.ipaddr.ipv6.IPv6Address;
@@ -132,7 +131,7 @@ public class V6RequestProcessor extends BaseV6Processor {
             tunnel.setRemoteInterfaceName(remoteInterfaceNameOption.getString());
 
             Wg wg = new Wg();
-            wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
+            wg.setInterfaceConfigParameters(tunnel.getLocalInterfaceName(),
                 Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                 Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv6Address.PREFIX_LEN_SEPARATOR + Constants.V6_SUBNET_MASK_64,
                 Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
