@@ -18,6 +18,7 @@
 package com.wgtools;
 
 import com.wgconnect.core.util.WgConnectLogger;
+import inet.ipaddr.IPAddress.IPVersion;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,11 +46,12 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     protected static final String COMMAND = "ip";
     protected static final String COMMAND_DIR = "/usr/bin/";
     
-    private static final String ADD_INTERFACE_DEVICE_COMMAND = "link add %s type wireguard";
-    private static final String SET_INTERFACE_DEVICE_INET_ADDR_COMMAND = "addr add %s/%s dev %s";
-    private static final String SET_INTERFACE_DEVICE_STATE_COMMAND = "link set %s %s";
-    private static final String GET_INTERFACE_DEVICE_INFO_COMMAND = "link show %s";
-    private static final String GET_INTERFACE_DEVICE_LOCAL_ENDPOINT_COMMAND = "route get to %s";
+    private static final String ARGS_ADD_DEVICE = "link add %s type wireguard";
+    private static final String ARGS_SET_DEVICE_INET_ADDR = "addr add %s/%s dev %s";
+    private static final String ARGS_SET_DEVICE_STATE = "link set %s %s";
+    private static final String ARGS_GET_V4_DEVICE_INFO = "-4 link show %s";
+    private static final String ARGS_GET_V6_DEVICE_INFO = "-6 link show %s";
+    private static final String ARGS_GET_INTERFACE_DEVICE_LOCAL_ENDPOINT = "route get to %s";
     
     private String commandOutputString;
     private String commandErrorString;
@@ -78,36 +80,52 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
         "                    -c[olor]}";
     
     protected LinuxDeviceManager() {}
+    
+    @Override
+    public int init() {
+        return 0;
+    }
 
     @Override
-    public int addInterfaceDevice(String deviceName) {
-        executeCommand(String.format(ADD_INTERFACE_DEVICE_COMMAND, deviceName));
+    public int addDevice(String deviceName) {
+        executeCommand(String.format(ARGS_ADD_DEVICE, deviceName));
         return commandExitCode;
     }
 
     @Override
-    public int setInterfaceDeviceInetAddr(String deviceName, String inetAddr, String subnetMask) {
-        executeCommand(String.format(SET_INTERFACE_DEVICE_INET_ADDR_COMMAND, inetAddr, subnetMask, deviceName));
+    public int setDeviceInetAddr(String deviceName, String inetAddr, String subnetMask) {
+        executeCommand(String.format(ARGS_SET_DEVICE_INET_ADDR, inetAddr, subnetMask, deviceName));
         return commandExitCode;
     }
 
     @Override
-    public int setInterfaceDeviceState(String deviceName, InterfaceDeviceState state) {
-        executeCommand(String.format(SET_INTERFACE_DEVICE_STATE_COMMAND, deviceName, state.toString()));
+    public int setDevicePrivateKey(String deviceName, String privateKey) {
+        executeCommand(String.format(Set.COMMAND, deviceName, Wg.OPTION_PRIVATE_KEY, privateKey));
         return commandExitCode;
     }
     
     @Override
-    public String getInterfaceDeviceInfo(String deviceName) {
-        executeCommand(String.format(GET_INTERFACE_DEVICE_INFO_COMMAND, deviceName));
+    public int setDeviceListenPort(String deviceName, long listenPort) {
+        return Wg.getCommandSuccessCode();
+    }
+    
+    @Override
+    public int setDeviceState(String deviceName, InterfaceDeviceState state) {
+        executeCommand(String.format(ARGS_SET_DEVICE_STATE, deviceName, state.toString()));
+        return commandExitCode;
+    }
+    
+    @Override
+    public String getDeviceInfo(String deviceName, IPVersion ipVersion) {
+        executeCommand(String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
         return commandOutputString;
     }
     
     @Override
-    public String getInterfaceDeviceInetAddr(String deviceName) {
+    public String getDeviceInetAddr(String deviceName, IPVersion ipVersion) {
         String inetAddr = null;
         
-        executeCommand(String.format(GET_INTERFACE_DEVICE_INFO_COMMAND, deviceName));
+        executeCommand(String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
         Iterator<String> iter = Arrays.asList(StringUtils.split(commandOutputString)).iterator();
         while (iter.hasNext()) {
             if (iter.next().equalsIgnoreCase("inet")) {
@@ -120,10 +138,10 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     }
     
     @Override
-    public String getLocalEndpointForInetAddr(String inetAddr) {
+    public String getLocalEndpointByInetAddr(String inetAddr) {
         String localEndpoint = null;
         
-        executeCommand(String.format(GET_INTERFACE_DEVICE_LOCAL_ENDPOINT_COMMAND, inetAddr));
+        executeCommand(String.format(ARGS_GET_INTERFACE_DEVICE_LOCAL_ENDPOINT, inetAddr));
         
         String[] split = StringUtils.split(commandOutputString, StringUtils.SPACE);
         for (String element : split) {
