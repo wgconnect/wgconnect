@@ -17,6 +17,8 @@
  */
 package com.wgtools;
 
+import inet.ipaddr.IPAddress.IPVersion;
+
 /**
  * InterfaceDeviceManager
  * 
@@ -43,17 +45,23 @@ public interface InterfaceDeviceManager {
         }
     }
     
-    public int addInterfaceDevice(String deviceName);
+    public int init();
     
-    public int setInterfaceDeviceInetAddr(String deviceName, String inetAddr, String networkMask);
+    public int addDevice(String deviceName);
     
-    public int setInterfaceDeviceState(String deviceName, InterfaceDeviceState state);
+    public int setDeviceInetAddr(String deviceName, String inetAddr, String networkMask);
     
-    public String getInterfaceDeviceInfo(String deviceName);
+    public int setDevicePrivateKey(String deviceName, String privateKey);
     
-    public String getInterfaceDeviceInetAddr(String deviceName);
+    public int setDeviceListenPort(String deviceName, long listenPort);
+
+    public int setDeviceState(String deviceName, InterfaceDeviceState state);
     
-    public String getLocalEndpointForInetAddr(String inetAddr);
+    public String getDeviceInfo(String deviceName, IPVersion ipVersion);
+    
+    public String getDeviceInetAddr(String deviceName, IPVersion ipVersion);
+    
+    public String getLocalEndpointByInetAddr(String inetAddr);
     
     public String getCommandOutputString();
     public String getCommandErrorString();
