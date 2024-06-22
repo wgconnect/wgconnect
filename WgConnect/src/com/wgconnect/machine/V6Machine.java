@@ -54,11 +54,10 @@ import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.processor.V6PingProcessor;
 
 import com.wgtools.InterfaceDeviceManager;
-import com.wgtools.Set;
-import com.wgtools.Show;
 import com.wgtools.Wg;
 
 import inet.ipaddr.AddressStringException;
+import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.ipv6.IPv6Address;
 import inet.ipaddr.ipv6.IPv6AddressSegment;
@@ -1180,7 +1179,7 @@ public class V6Machine implements Runnable {
         String remoteInterfaceName, boolean force) {
         
         PersistenceTunnel tunnel = new PersistenceTunnel();
-        tunnel.setInetType(Constants.IPVersion.V6.toString());
+        tunnel.setInetType(IPVersion.IPV6.toString());
         tunnel.setId(UUID.fromString(tunnelId));
         tunnel.setRemoteId(clientId);
 
@@ -1204,6 +1203,7 @@ public class V6Machine implements Runnable {
         tunnel.setKeepalive(WgConnect.getPersistentKeepalive());
                 
         Wg wg = new Wg();
+        int exitCode;
         
         PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalTunnelInetAddr(localTunnelInetAddr);
         if (force || referenceTunnel == null) {
@@ -1217,22 +1217,21 @@ public class V6Machine implements Runnable {
             if (!force && ifName != null) {
                 tunnel.setLocalInterfaceName(ifName);
 
-                tunnel.setLocalTunnelInetAddr(wg.getLinkDeviceManager().getInterfaceDeviceInetAddr(ifName));
+                tunnel.setLocalTunnelInetAddr(wg.getInterfaceDeviceManager().getDeviceInetAddr(ifName, IPVersion.IPV6));
                 tunnel.setLocalTunnelInetComPort(localPort);
                 tunnel.setLocalTunnelInetSockAddr(new InetSocketAddress(tunnel.getLocalTunnelInetAddr(),
                     (int) tunnel.getLocalTunnelInetComPort()));
 
-                tunnel.setLocalPrivateKey(wg.getPrivateKeyFromInterface(ifName));
-                tunnel.setLocalPublicKey(wg.getPublicKeyFromInterface(ifName));
-                tunnel.setLocalPreSharedKey(wg.getPresharedKeyFromInterface(ifName));
+                tunnel.setLocalPrivateKey(wg.getInterfacePrivateKey(ifName));
+                tunnel.setLocalPublicKey(wg.getInterfacePublicKey(ifName));
+                tunnel.setLocalPreSharedKey(wg.getInterfacePresharedKey(ifName));
 
-                // Get the listening port for the existing link
-                wg.executeSubcommand(Show.COMMAND, tunnel.getLocalInterfaceName(), Wg.OPTION_LISTEN_PORT);
-                if (wg.getCommandExitCode() == Wg.getCommandSuccessCode() && wg.getCommandOutputString() != null) {
-                    tunnel.setLocalPhysInetListenPort(
-                        Long.parseUnsignedLong(wg.getCommandOutputString().replaceAll("[\r\n]", "").trim()));
+                // Get the listen port for the existing link
+                long listenPort = wg.getInterfaceListenPort(tunnel.getLocalInterfaceName());
+                if (listenPort > 0) {
+                    tunnel.setLocalPhysInetListenPort(listenPort);
                 } else {
-                    log.error("Unable to obtain the listen-port for WgConnect device " + tunnel.getLocalInterfaceName());
+                    log.error("Unable to obtain the listen port for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
             } else {
@@ -1255,51 +1254,48 @@ public class V6Machine implements Runnable {
                 }
 
                 // Add, configure, and bring up the WgConnect network link device
-                int exitCode = wg.getLinkDeviceManager().addInterfaceDevice(tunnel.getLocalInterfaceName());
-                if (exitCode == wg.getLinkDeviceManager().getCommandFailureCode()) {
+                exitCode = wg.getInterfaceDeviceManager().addDevice(tunnel.getLocalInterfaceName());
+                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
                     log.error("Unable to add the WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                exitCode = wg.getLinkDeviceManager().setInterfaceDeviceInetAddr(tunnel.getLocalInterfaceName(),
+                exitCode = wg.getInterfaceDeviceManager().setDeviceInetAddr(tunnel.getLocalInterfaceName(),
                     tunnel.getLocalTunnelInetAddr(), Integer.toString(Constants.V6_SUBNET_MASK_64));
-                if (exitCode == wg.getLinkDeviceManager().getCommandFailureCode()) {
+                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
                     log.error("Unable to set the inet address for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
-                    Wg.OPTION_PRIVATE_KEY, tunnel.getLocalPrivateKey());
-                if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
+                exitCode = wg.setInterfacePrivateKey(tunnel.getLocalInterfaceName(), tunnel.getLocalPrivateKey());
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set private key for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.getLinkDeviceManager().setInterfaceDeviceState(tunnel.getLocalInterfaceName(),
+                wg.getInterfaceDeviceManager().setDeviceState(tunnel.getLocalInterfaceName(),
                     InterfaceDeviceManager.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.executeSubcommand(Show.COMMAND, tunnel.getLocalInterfaceName(), Wg.OPTION_LISTEN_PORT);
-                if (wg.getCommandExitCode() == Wg.getCommandSuccessCode() && wg.getCommandOutputString() != null) {
-                    tunnel.setLocalPhysInetListenPort(
-                        Long.parseUnsignedLong(wg.getCommandOutputString().replaceAll("[\r\n]", "").trim()));
+                // Get the listen port for the new link
+                long listenPort = wg.getInterfaceListenPort(tunnel.getLocalInterfaceName());
+                if (listenPort > 0) {
+                    tunnel.setLocalPhysInetListenPort(listenPort);
                 } else {
                     log.error("Unable to obtain the listen-port for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
+                exitCode = wg.setInterfaceConfigParameters(tunnel.getLocalInterfaceName(),
                     Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                     Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv6Address.PREFIX_LEN_SEPARATOR + Constants.V6_SUBNET_MASK_64,
                     Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
-                    Wg.OPTION_PERSISTENT_KEEPALIVE,
-                    Integer.toString(WgConnect.getPersistentKeepalive())
+                    Wg.OPTION_PERSISTENT_KEEPALIVE, Integer.toString(WgConnect.getPersistentKeepalive())
                 );
-                
-                if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the peer configuration for the device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
@@ -1325,15 +1321,14 @@ public class V6Machine implements Runnable {
             
             tunnel.setLocalPhysInetListenPort(referenceTunnel.getLocalPhysInetListenPort());
             
-            wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
+            exitCode = wg.setInterfaceConfigParameters(tunnel.getLocalInterfaceName(),
                 Wg.OPTION_PEER, tunnel.getRemotePublicKey(),
                 Wg.OPTION_ALLOWED_IPS, tunnel.getRemoteTunnelInetAddr() + IPv6Address.PREFIX_LEN_SEPARATOR + Constants.V6_SUBNET_MASK_64,
                 Wg.OPTION_ENDPOINT, tunnel.getRemotePhysInetAddr() + ":" + tunnel.getRemotePhysInetListenPort(),
                 Wg.OPTION_PERSISTENT_KEEPALIVE,
                 Integer.toString(WgConnect.getPersistentKeepalive())
             );
-            
-            if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
+            if (exitCode == Wg.getCommandFailureCode()) {
                 log.error("Unable to set the peer configuration for the device " + tunnel.getLocalInterfaceName());
                 return null;
             }
@@ -1360,7 +1355,7 @@ public class V6Machine implements Runnable {
         PersistenceTunnel tunnel = new PersistenceTunnel();
         tunnel.setRemoteId(remoteId);
         tunnel.setId(UUID.randomUUID());
-        tunnel.setInetType(Constants.IPVersion.V6.toString());
+        tunnel.setInetType(IPVersion.IPV6.toString());
         
         tunnel.setRemotePhysInetAddr(remotePhysInetAddr);
         tunnel.setRemotePhysInetComPort(remotePhysInetComPort);
@@ -1393,19 +1388,19 @@ public class V6Machine implements Runnable {
             if (!force && ifName != null) {
                 tunnel.setLocalInterfaceName(ifName);
 
-                tunnel.setLocalTunnelInetAddr(wg.getLinkDeviceManager().getInterfaceDeviceInetAddr(ifName));
+                tunnel.setLocalTunnelInetAddr(wg.getInterfaceDeviceManager().getDeviceInetAddr(ifName, IPVersion.IPV6));
                 tunnel.setLocalTunnelInetComPort(localPort);
                 tunnel.setLocalTunnelInetSockAddr(new InetSocketAddress(tunnel.getLocalTunnelInetAddr(),
                     (int) tunnel.getLocalTunnelInetComPort()));
 
-                tunnel.setLocalPrivateKey(wg.getPrivateKeyFromInterface(ifName));
-                tunnel.setLocalPublicKey(wg.getPublicKeyFromInterface(ifName));
-                tunnel.setLocalPreSharedKey(wg.getPresharedKeyFromInterface(ifName));
+                tunnel.setLocalPrivateKey(wg.getInterfacePrivateKey(ifName));
+                tunnel.setLocalPublicKey(wg.getInterfacePublicKey(ifName));
+                tunnel.setLocalPreSharedKey(wg.getInterfacePresharedKey(ifName));
 
-                wg.executeSubcommand(Show.COMMAND, tunnel.getLocalInterfaceName(), Wg.OPTION_LISTEN_PORT);
-                if (wg.getCommandExitCode() == Wg.getCommandSuccessCode() && wg.getCommandOutputString() != null) {
-                    tunnel.setLocalPhysInetListenPort(
-                        Long.parseUnsignedLong(wg.getCommandOutputString().replaceAll("[\r\n]", "").trim()));
+                // Get the listen port for the new link
+                long listenPort = wg.getInterfaceListenPort(tunnel.getLocalInterfaceName());
+                if (listenPort > 0) {
+                    tunnel.setLocalPhysInetListenPort(listenPort);
                 } else {
                     log.error("Unable to obtain the listen-port for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1429,37 +1424,36 @@ public class V6Machine implements Runnable {
                 }
 
                 // Add, configure, and bring up the WgConnect network link device
-                int exitCode = wg.getLinkDeviceManager().addInterfaceDevice(tunnel.getLocalInterfaceName());
-                if (exitCode == wg.getLinkDeviceManager().getCommandFailureCode()) {
+                int exitCode = wg.getInterfaceDeviceManager().addDevice(tunnel.getLocalInterfaceName());
+                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
                     log.error("Unable to add the WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                exitCode = wg.getLinkDeviceManager().setInterfaceDeviceInetAddr(tunnel.getLocalInterfaceName(),
+                exitCode = wg.getInterfaceDeviceManager().setDeviceInetAddr(tunnel.getLocalInterfaceName(),
                     tunnel.getLocalTunnelInetAddr(), Integer.toString(Constants.V6_SUBNET_MASK_64));
-                if (exitCode == wg.getLinkDeviceManager().getCommandFailureCode()) {
+                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
                     log.error("Unable to set the inet address for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.executeSubcommand(Set.COMMAND, tunnel.getLocalInterfaceName(),
-                    Wg.OPTION_PRIVATE_KEY, tunnel.getLocalPrivateKey());
-                if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
+                exitCode = wg.setInterfacePrivateKey(tunnel.getLocalInterfaceName(), tunnel.getLocalPrivateKey());
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set private key for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.getLinkDeviceManager().setInterfaceDeviceState(tunnel.getLocalInterfaceName(),
+                wg.getInterfaceDeviceManager().setDeviceState(tunnel.getLocalInterfaceName(),
                     InterfaceDeviceManager.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                wg.executeSubcommand(Show.COMMAND, tunnel.getLocalInterfaceName(), Wg.OPTION_LISTEN_PORT);
-                if (wg.getCommandExitCode() == Wg.getCommandSuccessCode() && wg.getCommandOutputString() != null) {
-                    tunnel.setLocalPhysInetListenPort(
-                        Long.parseUnsignedLong(wg.getCommandOutputString().replaceAll("[\r\n]", "").trim()));
+                // Get the listen port for the new link
+                long listenPort = wg.getInterfaceListenPort(tunnel.getLocalInterfaceName());
+                if (listenPort > 0) {
+                    tunnel.setLocalPhysInetListenPort(listenPort);
                 } else {
                     log.error("Unable to obtain the listen-port for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1619,7 +1613,7 @@ public class V6Machine implements Runnable {
                     while (WgConnect.isLocalV6Addr(newTunnelNetAddr)) {
                         NetworkInterface netIf = WgConnect.getV6NetIfByIpAddr(newTunnelNetAddr);
                         if (netIf != null) {
-                            for (String endpoint : wg.getEndpointsAsList(netIf.getDisplayName())) {
+                            for (String endpoint : wg.getInterfaceEndpointsAsList(netIf.getDisplayName())) {
                                 if (StringUtils.equals(endpoint, newTunnelNetAddr)) {
                                     clientMachine.generateNextTunnelNet();
                                     newTunnelNetAddr = StringUtils.substringBefore(clientMachine.getLocalTunnelInetAddr(),
