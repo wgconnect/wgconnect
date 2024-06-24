@@ -276,7 +276,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(remotePhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(remotePhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = wg.getInterfaceDeviceManager().getLocalEndpointByInetAddr(remotePhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getLocalEndpointByInetAddr(remotePhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
@@ -387,7 +387,7 @@ public class ConnectConfig {
                                     tunnel.setRemotePhysInetAddr(clientPhysInetAddrInfo[0]);
                                     tunnel.setRemotePhysInetListenPort(Long.parseLong(clientPhysInetAddrInfo[1]));
 
-                                    String serverPhysInetAddr = wg.getInterfaceDeviceManager().getLocalEndpointByInetAddr(clientPhysInetAddrInfo[0]);
+                                    String serverPhysInetAddr = wg.getLocalEndpointByInetAddr(clientPhysInetAddrInfo[0]);
                                     if (validator.isValid(serverPhysInetAddr)) {
                                         tunnel.setLocalPhysInetAddr(serverPhysInetAddr);
                                     }
