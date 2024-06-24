@@ -57,9 +57,6 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     private String commandErrorString;
     private int commandExitCode;
 
-    private static final int COMMAND_SUCCESS_CODE = 0;
-    private static final int COMMAND_FAILURE_CODE = 1;
-    
     private static final InetAddressValidator validator = InetAddressValidator.getInstance();
 
     public static final String USAGE =
@@ -183,16 +180,6 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
         commandExitCode = code;
     }
     
-    @Override
-    public int getCommandSuccessCode() {
-        return COMMAND_SUCCESS_CODE;
-    }
-
-    @Override
-    public int getCommandFailureCode() {
-        return COMMAND_FAILURE_CODE;
-    }
-
     public void executeCommand(String args) {
         setCommandExitCode(0);
 
