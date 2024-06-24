@@ -20,6 +20,8 @@ package com.wgtools;
 import com.google.common.collect.ObjectArrays;
 
 import com.wgconnect.core.util.WgConnectLogger;
+import com.wgtools.InterfaceDeviceManager.InterfaceDeviceState;
+import inet.ipaddr.IPAddress.IPVersion;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -35,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 import org.scijava.nativelib.NativeLoader;
 
@@ -75,8 +78,8 @@ public class Wg implements Runnable {
     public static final String OS_ARCH_32 = "32";
     public static final String OS_ARCH_DEFAULT = OS_ARCH_64;
     
-    private static final int COMMAND_SUCCESS = 0;
-    private static final int COMMAND_FAILURE = 1;
+    private static final int COMMAND_SUCCESS_CODE = 0;
+    private static final int CODE_COMMAND_FAILURE = 1;
 
     private static boolean libraryFileLoaded = false;
 
@@ -91,8 +94,9 @@ public class Wg implements Runnable {
     
     private int commandExitCode;
 
-    private static final InterfaceDeviceManager defaultDeviceMgr = new LinuxDeviceManager();
-    private final InterfaceDeviceManager deviceMgr;
+    private static final InterfaceDeviceManager linuxDeviceMgr = new LinuxDeviceManager();
+    private static final InterfaceDeviceManager freeBsdDeviceMgr = new BsdDeviceManager();
+    private InterfaceDeviceManager deviceMgr;
     
     public static final String OPTION_ALL = "all";
     public static final String OPTION_INTERFACES = "interfaces";
@@ -123,6 +127,21 @@ public class Wg implements Runnable {
 
     public Wg(InterfaceDeviceManager deviceMgr) {
         this.deviceMgr = deviceMgr;
+        
+        init();
+    }
+    
+    public Wg() {
+        if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_OPEN_BSD || SystemUtils.IS_OS_NET_BSD) {
+            deviceMgr = new BsdDeviceManager();
+        } else {
+            deviceMgr = new LinuxDeviceManager();
+        }
+        
+        init();
+    }
+    
+    private void init() {
         try {
             deviceMgr.init();
             
@@ -131,10 +150,6 @@ public class Wg implements Runnable {
         } catch (UnsupportedEncodingException ex) {
             log.error("Encoding exception: " + ex);
         }
-    }
-    
-    public Wg() {
-        this(defaultDeviceMgr);
     }
     
     public String getPrivateKey() {
@@ -202,11 +217,11 @@ public class Wg implements Runnable {
     }
     
     public static int getCommandSuccessCode() {
-        return COMMAND_SUCCESS;
+        return COMMAND_SUCCESS_CODE;
     }
     
     public static int getCommandFailureCode() {
-        return COMMAND_FAILURE;
+        return CODE_COMMAND_FAILURE;
     }
     
     public void showUsage() {
@@ -312,6 +327,26 @@ public class Wg implements Runnable {
         }
 
         return peers;
+    }
+    
+    public int addDevice(String deviceName) {
+        return deviceMgr.addDevice(deviceName);
+    }
+    
+    public int setDeviceInetAddr(String deviceName, String inetAddr, String subnetMask) {
+        return deviceMgr.setDeviceInetAddr(deviceName, inetAddr, subnetMask);
+    }
+
+    public String getDeviceInetAddr(String deviceName, IPVersion ipVersion) {
+        return deviceMgr.getDeviceInetAddr(deviceName, ipVersion);
+    }
+    
+    public int setDeviceState(String deviceName, InterfaceDeviceState state) {
+        return deviceMgr.setDeviceState(deviceName, state);
+    }
+    
+    public String getLocalEndpointByInetAddr(String inetAddr) {
+        return deviceMgr.getLocalEndpointByInetAddr(inetAddr);
     }
     
     public Map<String, String> getInterfaceEndpointsAsMap(String ifName) {
