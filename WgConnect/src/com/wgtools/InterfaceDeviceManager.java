@@ -65,7 +65,4 @@ public interface InterfaceDeviceManager {
     
     public String getCommandOutputString();
     public String getCommandErrorString();
-    
-    public int getCommandSuccessCode();
-    public int getCommandFailureCode();
 }
