@@ -1235,7 +1235,7 @@ public class V4Machine implements Runnable {
             if (!force && ifName != null) {
                 tunnel.setLocalInterfaceName(ifName);
 
-                tunnel.setLocalTunnelInetAddr(wg.getInterfaceDeviceManager().getDeviceInetAddr(ifName, IPVersion.IPV4));
+                tunnel.setLocalTunnelInetAddr(wg.getDeviceInetAddr(ifName, IPVersion.IPV4));
                 tunnel.setLocalTunnelInetComPort(localPort);
                 tunnel.setLocalTunnelInetSockAddr(new InetSocketAddress(tunnel.getLocalTunnelInetAddr(),
                     (int) tunnel.getLocalTunnelInetComPort()));
@@ -1272,15 +1272,15 @@ public class V4Machine implements Runnable {
                 }
 
                 // Add, configure, and bring up the WgConnect network link device
-                exitCode = wg.getInterfaceDeviceManager().addDevice(tunnel.getLocalInterfaceName());
-                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
+                exitCode = wg.addDevice(tunnel.getLocalInterfaceName());
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to add the WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                exitCode = wg.getInterfaceDeviceManager().setDeviceInetAddr(tunnel.getLocalInterfaceName(),
+                exitCode = wg.setDeviceInetAddr(tunnel.getLocalInterfaceName(),
                     tunnel.getLocalTunnelInetAddr(), Integer.toString(Constants.V4_SUBNET_MASK_24));
-                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the inet address for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
@@ -1291,7 +1291,7 @@ public class V4Machine implements Runnable {
                     return null;
                 }
 
-                wg.getInterfaceDeviceManager().setDeviceState(tunnel.getLocalInterfaceName(),
+                wg.setDeviceState(tunnel.getLocalInterfaceName(),
                     InterfaceDeviceManager.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
@@ -1403,7 +1403,7 @@ public class V4Machine implements Runnable {
             if (!force && ifName != null) {
                 tunnel.setLocalInterfaceName(ifName);
 
-                tunnel.setLocalTunnelInetAddr(wg.getInterfaceDeviceManager().getDeviceInetAddr(ifName, IPVersion.IPV4));
+                tunnel.setLocalTunnelInetAddr(wg.getDeviceInetAddr(ifName, IPVersion.IPV4));
                 tunnel.setLocalTunnelInetComPort(localPort);
                 tunnel.setLocalTunnelInetSockAddr(new InetSocketAddress(tunnel.getLocalTunnelInetAddr(),
                     (int) tunnel.getLocalTunnelInetComPort()));
@@ -1439,15 +1439,15 @@ public class V4Machine implements Runnable {
                 }
 
                 // Add, configure, and bring up the WgConnect network link device
-                int exitCode = wg.getInterfaceDeviceManager().addDevice(tunnel.getLocalInterfaceName());
-                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
+                int exitCode = wg.addDevice(tunnel.getLocalInterfaceName());
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to add the WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
 
-                exitCode = wg.getInterfaceDeviceManager().setDeviceInetAddr(tunnel.getLocalInterfaceName(),
+                exitCode = wg.setDeviceInetAddr(tunnel.getLocalInterfaceName(),
                     tunnel.getLocalTunnelInetAddr(), Integer.toString(Constants.V4_SUBNET_MASK_24));
-                if (exitCode == wg.getInterfaceDeviceManager().getCommandFailureCode()) {
+                if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the inet address for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
                 }
@@ -1458,7 +1458,7 @@ public class V4Machine implements Runnable {
                     return null;
                 }
 
-                wg.getInterfaceDeviceManager().setDeviceState(tunnel.getLocalInterfaceName(),
+                wg.setDeviceState(tunnel.getLocalInterfaceName(),
                     InterfaceDeviceManager.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
