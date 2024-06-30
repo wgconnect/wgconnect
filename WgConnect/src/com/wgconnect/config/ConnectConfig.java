@@ -172,7 +172,7 @@ public class ConnectConfig {
                 Enumeration<NetworkInterface> netIfs = NetworkInterface.getNetworkInterfaces();
                 while (netIfs.hasMoreElements()) {
                     NetworkInterface netIf = netIfs.nextElement();
-                    if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V6_IF_NAME_PREFIX)) {
+                    if (netIf.getDisplayName().startsWith(Constants.getTunnelInterfacePrefix(IPVersion.IPV6))) {
                         String inetAddr = null;
                         Enumeration<InetAddress> inetAddrs = netIf.getInetAddresses();
                         while (inetAddrs.hasMoreElements()) {
@@ -285,7 +285,7 @@ public class ConnectConfig {
                         }
                     }
                     
-                    if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V4_IF_NAME_PREFIX)) {
+                    if (netIf.getDisplayName().startsWith(Constants.getTunnelInterfacePrefix(IPVersion.IPV4))) {
                         String inetAddr = null;
                         Enumeration<InetAddress> inetAddress = netIf.getInetAddresses();
                         while (inetAddress.hasMoreElements()) {
