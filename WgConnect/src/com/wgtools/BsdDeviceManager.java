@@ -22,14 +22,10 @@ import com.wgconnect.core.util.WgConnectLogger;
 import inet.ipaddr.IPAddress.IPVersion;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -37,7 +33,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Scanner;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.InetAddressValidator;
 
@@ -50,9 +45,12 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
     
     private static final WgConnectLogger log = WgConnectLogger.getLogger(BsdDeviceManager.class);    
 
-    protected static final String COMMAND = "ifConfig";
+    protected static final String COMMAND_IFCONFIG = "ifconfig";
     protected static final String COMMAND_DIR = "/usr/bin/";
     
+    private static final String ARGS_ADD_DEVICE = "%s create";
+    private static final String ARGS_SET_DEVICE_INET_ADDR = "%s inet %s/%s";
+    private static final String ARGS_SET_DEVICE_STATE = "%s %s";
     private String commandOutputString;
     private String commandErrorString;
     private int commandExitCode;
@@ -70,95 +68,30 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
         "ifconfig [-j jail] -l [-du] [-g groupname] [address_family]\n" +
         "ifconfig [-j jail] [-dkLmuv] [-f type:format]\n";
     
-    private static final String CONFIG_LOCAL_HEADER =  "[Interface]";
-
-    private static final String CONFIG_LOCAL_TUNNEL_ADDR =  "Address = ";
-    private static final String CONFIG_LOCAL_LISTEN_PORT = "ListenPort = ";
-    private static final String CONFIG_LOCAL_PRIVATE_KEY = "PrivateKey = ";
-    private static final String CONFIG_REMOTE_HEADER =  "[Peer]";
-    private static final String CONFIG_REMOTE_ALLOWED_IPS = "AllowedIPs = ";
-    private static final String CONFIG_REMOTE_ENDPOINT_ADDR = "Endpoint = ";
-    private static final String CONFIG_REMOTE_PUBLIC_KEY = "PublicKey = ";
-    private static final String CONFIG_REMOTE_PRESHARED_KEY = "PreSharedKey = ";
-
-    private Charset charset = Charset.forName("UTF-8");
-    
-    protected BsdDeviceManager() {
-    }
-
-    public static final String WG_CONFIG_DIR = "/usr/local/etc/wireguard/";
-    private static final String WG_CONFIG_FILE_SUFFIX = ".conf";
-    private static final String TEMP_FILE_SUFFIX = ".tmp";
-    
-    public void setCharset(Charset charset) {
-        this.charset = charset;
-    }
-    
-    @Override
-    public int init() {
-        int status = 0;
-        
-        try {
-            File dir = new File(WG_CONFIG_DIR);
-            FileUtils.forceMkdir(dir);
-     
-            // Set the permissions for the owner
-            dir.setReadable(true);
-            dir.setWritable(true);
-            dir.setExecutable(true);
-
-            // Set the permissions for others
-            dir.setReadable(false, false);
-            dir.setWritable(false, false);
-            dir.setExecutable(false, false);
-        } catch (IOException ex) {
-            log.info(ex.getMessage());
-            status = 1;
-        }
-
-        return status;
+    public BsdDeviceManager() {
     }
 
     @Override
     public int addDevice(String deviceName) {
-        int status = 0;
-        
-        try {
-            FileUtils.writeStringToFile(new File(WG_CONFIG_DIR + deviceName + WG_CONFIG_FILE_SUFFIX),
-                CONFIG_LOCAL_HEADER + System.lineSeparator(), charset);
-        } catch (IOException ex) {
-            log.info(ex.getMessage());
-            status = 1;
-        }
-
-        return status;
+        executeCommand(COMMAND_IFCONFIG + StringUtils.SPACE + String.format(ARGS_ADD_DEVICE, deviceName));
+        return commandExitCode;
     }
 
     @Override
     public int setDeviceInetAddr(String deviceName, String inetAddr, String subnetMask) {
-        return insertConfigParameter(deviceName, CONFIG_LOCAL_HEADER, CONFIG_LOCAL_TUNNEL_ADDR + inetAddr + "/" + subnetMask);
+        executeCommand(COMMAND_IFCONFIG + StringUtils.SPACE + String.format(ARGS_SET_DEVICE_INET_ADDR, deviceName, inetAddr, subnetMask));
+        return commandExitCode;
     }
 
-    @Override
-    public int setDevicePrivateKey(String deviceName, String privateKey) {
-        return insertConfigParameter(deviceName, CONFIG_LOCAL_HEADER, CONFIG_LOCAL_PRIVATE_KEY + privateKey);
-    }
-
-    @Override
-    public int setDeviceListenPort(String deviceName, long listenPort) {
-        return insertConfigParameter(deviceName, CONFIG_LOCAL_HEADER, CONFIG_LOCAL_LISTEN_PORT + listenPort);
-    }
-    
     @Override
     public int setDeviceState(String deviceName, InterfaceDeviceState state) {
-        return Wg.getCommandSuccessCode();
+        executeCommand(COMMAND_IFCONFIG + StringUtils.SPACE + String.format(ARGS_SET_DEVICE_STATE, deviceName, state.toString()));
+        return commandExitCode;
     }
     
-    private static final String COMMAND_DEVICE_STATUS = "server wireguard status";
-    private static final String COMMAND_CONFIG_NETWORK_DEVICE = "ifconfig";
     @Override
     public String getDeviceInfo(String deviceName, IPVersion ipVersion) {
-        executeCommand(COMMAND_CONFIG_NETWORK_DEVICE + StringUtils.SPACE + deviceName);
+        executeCommand(COMMAND_IFCONFIG + StringUtils.SPACE + deviceName);
         return commandOutputString;
     }
     
@@ -166,7 +99,7 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
     public String getDeviceInetAddr(String deviceName, IPVersion ipVersion) {
         String inetAddr = null;
         
-        executeCommand(COMMAND_CONFIG_NETWORK_DEVICE + StringUtils.SPACE + deviceName);
+        executeCommand(COMMAND_IFCONFIG + StringUtils.SPACE + deviceName);
         Iterator<String> iter = Arrays.asList(StringUtils.split(commandOutputString)).iterator();
         while (iter.hasNext()) {
             if (iter.next().equalsIgnoreCase("inet")) {
@@ -178,6 +111,17 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
         return inetAddr;
     }
     
+    /*XXX
+    $ route -n get -host 192.168.1.78
+       route to: 192.168.1.78
+    destination: 192.168.1.0
+           mask: 255.255.255.0
+            fib: 0
+      interface: em0
+          flags: <UP,DONE,PINNED>
+     recvpipe  sendpipe  ssthresh  rtt,msec    mtu        weight    expire
+           0         0         0         0      1500         1         0 
+    */
     private static final String COMMAND_GET_ENDPOINT = "route -n get -host ";
     private static final String ENDPOINT_TAG = "destination:";
     
@@ -227,43 +171,13 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
     public void setCommandExitCode(int code) {
         commandExitCode = code;
     }
-    
-    public int insertConfigParameter(String deviceName, String searchStr, String newLine) {
-        int status = 0;
-        
-        try {
-            File configFile = new File(WG_CONFIG_DIR + deviceName + WG_CONFIG_FILE_SUFFIX);
-            if (!configFile.exists()) {
-                addDevice(deviceName);
-            }
-            
-            File tempFile = new File(WG_CONFIG_DIR + deviceName + TEMP_FILE_SUFFIX);
-            BufferedReader br = new BufferedReader(new FileReader(configFile));
-            PrintWriter pw = new PrintWriter(new FileWriter(tempFile));
-            
-            String line;
-            while ((line = br.readLine()) != null) {
-                pw.println(line);
-                if (StringUtils.contains(line, searchStr)) {
-                    pw.println(newLine);
-                }
-            }
-            
-            FileUtils.copyFile(tempFile, configFile);
-        } catch (IOException ex) {
-            log.info(ex.getMessage());
-            status = 1;
-        }
-        
-        return status;
-    }
-    
+
     public void executeCommand(String command) {
         setCommandExitCode(0);
 
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command(command.split(" "));
+            processBuilder.command(command.split(StringUtils.SPACE));
 
             Process process = processBuilder.start();
             commandExitCode = process.waitFor();
@@ -281,7 +195,7 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
                 commandOutputString = processOutput.toString();
             else
                 commandErrorString = processOutput.toString();
-            
+
             process.destroy();
             
         } catch (IOException | InterruptedException ex) {
@@ -294,10 +208,12 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        StringBuilder command = new StringBuilder();
-        for (String arg : args)
-            command.append(arg).append(" ");
-        BsdDeviceManager ip = new BsdDeviceManager();
-        ip.executeCommand(command.toString());
+        StringBuilder command = new StringBuilder(COMMAND_IFCONFIG + StringUtils.SPACE);
+        for (String arg : args) {
+            command.append(arg).append(StringUtils.SPACE);
+        }
+        
+        BsdDeviceManager mgr = new BsdDeviceManager();
+        mgr.executeCommand(command.toString());
     }
 }
