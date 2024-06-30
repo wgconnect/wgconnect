@@ -44,17 +44,11 @@ public interface InterfaceDeviceManager {
             return state;
         }
     }
-    
-    public int init();
-    
+        
     public int addDevice(String deviceName);
     
     public int setDeviceInetAddr(String deviceName, String inetAddr, String networkMask);
     
-    public int setDevicePrivateKey(String deviceName, String privateKey);
-    
-    public int setDeviceListenPort(String deviceName, long listenPort);
-
     public int setDeviceState(String deviceName, InterfaceDeviceState state);
     
     public String getDeviceInfo(String deviceName, IPVersion ipVersion);
