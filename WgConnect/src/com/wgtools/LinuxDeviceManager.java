@@ -18,6 +18,7 @@
 package com.wgtools;
 
 import com.wgconnect.core.util.WgConnectLogger;
+
 import inet.ipaddr.IPAddress.IPVersion;
 
 import java.io.BufferedReader;
@@ -43,7 +44,7 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     
     private static final WgConnectLogger log = WgConnectLogger.getLogger(LinuxDeviceManager.class);    
 
-    protected static final String COMMAND = "ip";
+    protected static final String COMMAND_IP = "ip";
     protected static final String COMMAND_DIR = "/usr/bin/";
     
     private static final String ARGS_ADD_DEVICE = "link add %s type wireguard";
@@ -76,45 +77,29 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
         "                    -rc[vbuf] [size] | -n[etns] name | -N[umeric] | -a[ll] |\n" +
         "                    -c[olor]}";
     
-    protected LinuxDeviceManager() {}
+    public LinuxDeviceManager() {}
     
     @Override
-    public int init() {
-        return 0;
-    }
-
-    @Override
     public int addDevice(String deviceName) {
-        executeCommand(String.format(ARGS_ADD_DEVICE, deviceName));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ARGS_ADD_DEVICE, deviceName));
         return commandExitCode;
     }
 
     @Override
     public int setDeviceInetAddr(String deviceName, String inetAddr, String subnetMask) {
-        executeCommand(String.format(ARGS_SET_DEVICE_INET_ADDR, inetAddr, subnetMask, deviceName));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ARGS_SET_DEVICE_INET_ADDR, inetAddr, subnetMask, deviceName));
         return commandExitCode;
     }
 
     @Override
-    public int setDevicePrivateKey(String deviceName, String privateKey) {
-        executeCommand(String.format(Set.COMMAND, deviceName, Wg.OPTION_PRIVATE_KEY, privateKey));
-        return commandExitCode;
-    }
-    
-    @Override
-    public int setDeviceListenPort(String deviceName, long listenPort) {
-        return Wg.getCommandSuccessCode();
-    }
-    
-    @Override
     public int setDeviceState(String deviceName, InterfaceDeviceState state) {
-        executeCommand(String.format(ARGS_SET_DEVICE_STATE, deviceName, state.toString()));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ARGS_SET_DEVICE_STATE, deviceName, state.toString()));
         return commandExitCode;
     }
     
     @Override
     public String getDeviceInfo(String deviceName, IPVersion ipVersion) {
-        executeCommand(String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
         return commandOutputString;
     }
     
@@ -122,7 +107,7 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     public String getDeviceInetAddr(String deviceName, IPVersion ipVersion) {
         String inetAddr = null;
         
-        executeCommand(String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ipVersion.isIPv4() ? ARGS_GET_V4_DEVICE_INFO : ARGS_GET_V6_DEVICE_INFO, deviceName));
         Iterator<String> iter = Arrays.asList(StringUtils.split(commandOutputString)).iterator();
         while (iter.hasNext()) {
             if (iter.next().equalsIgnoreCase("inet")) {
@@ -138,7 +123,7 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
     public String getLocalEndpointByInetAddr(String inetAddr) {
         String localEndpoint = null;
         
-        executeCommand(String.format(ARGS_GET_INTERFACE_DEVICE_LOCAL_ENDPOINT, inetAddr));
+        executeCommand(COMMAND_IP + StringUtils.SPACE + String.format(ARGS_GET_INTERFACE_DEVICE_LOCAL_ENDPOINT, inetAddr));
         
         String[] split = StringUtils.split(commandOutputString, StringUtils.SPACE);
         for (String element : split) {
@@ -180,13 +165,12 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
         commandExitCode = code;
     }
     
-    public void executeCommand(String args) {
+    public void executeCommand(String command) {
         setCommandExitCode(0);
 
-        String command = COMMAND + " " + args;
         try {
             ProcessBuilder processBuilder = new ProcessBuilder();
-            processBuilder.command(command.split(" "));
+            processBuilder.command(command.split(StringUtils.SPACE));
 
             Process process = processBuilder.start();
             commandExitCode = process.waitFor();
@@ -217,10 +201,12 @@ class LinuxDeviceManager implements InterfaceDeviceManager {
      * @param args the command line arguments
      */
     public static void main(String... args) {
-        StringBuilder command = new StringBuilder();
-        for (String arg : args)
-            command.append(arg).append(" ");
-        LinuxDeviceManager ip = new LinuxDeviceManager();
-        ip.executeCommand(command.toString());
+        StringBuilder command = new StringBuilder(COMMAND_IP + StringUtils.SPACE);
+        for (String arg : args) {
+            command.append(arg).append(StringUtils.SPACE);
+        }
+        
+        LinuxDeviceManager mgr = new LinuxDeviceManager();
+        mgr.executeCommand(command.toString());
     }
 }
