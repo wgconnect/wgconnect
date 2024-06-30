@@ -21,6 +21,7 @@ import com.wgconnect.config.WgInterfaceInfo;
 
 import com.wgtools.Wg;
 
+import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.IPAddressSection;
 import inet.ipaddr.IPAddressString;
 
@@ -497,7 +498,7 @@ public class Utils {
             Enumeration<NetworkInterface> netIfs = NetworkInterface.getNetworkInterfaces();
             while (netIfs.hasMoreElements()) {
                 NetworkInterface netIf = netIfs.nextElement();
-                if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V6_IF_NAME_PREFIX)) {
+                if (netIf.getDisplayName().startsWith(Constants.getTunnelInterfacePrefix(IPVersion.IPV6))) {
                     List<String> netIfDump = wg.getInterfaceDump(netIf.getDisplayName());
                     wgNetIfs.add(new WgInterfaceInfo(netIf.getDisplayName()).parse(netIfDump));
                 }
@@ -516,7 +517,7 @@ public class Utils {
             Enumeration<NetworkInterface> netIfs = NetworkInterface.getNetworkInterfaces();
             while (netIfs.hasMoreElements()) {
                 NetworkInterface netIf = netIfs.nextElement();
-                if (netIf.getDisplayName().startsWith(Constants.TUNNEL_V4_IF_NAME_PREFIX)) {
+                if (netIf.getDisplayName().startsWith(Constants.getTunnelInterfacePrefix(IPVersion.IPV4))) {
                     List<String> netIfDump = wg.getInterfaceDump(netIf.getDisplayName());
                     wgNetIfs.add(new WgInterfaceInfo(netIf.getDisplayName()).parse(netIfDump));
                 }
