@@ -1226,9 +1226,9 @@ public class V4Machine implements Runnable {
         PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalTunnelInetAddr(localTunnelInetAddr);
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V4 device that is not in wgConnectTunnels
-            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.TUNNEL_V4_IF_NAME_PREFIX);
+            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV4));
             if (WgConnect.getTunnelByLocalIfName(ifName) != null ||
-                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.TUNNEL_V4_IF_NAME_PREFIX, remotePhysInetAddr) != null) {
+                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.getTunnelInterfacePrefix(IPVersion.IPV4), remotePhysInetAddr) != null) {
                 force = true;
             }
             
@@ -1254,7 +1254,7 @@ public class V4Machine implements Runnable {
                 }
             } else {
                 // Generate the v4 interface name
-                ifName = Utils.getNextAvailableNetIfName(Constants.TUNNEL_V4_IF_NAME_PREFIX, 0);
+                ifName = Utils.getNextAvailableNetIfName(Constants.getTunnelInterfacePrefix(IPVersion.IPV4), -1);
                 tunnel.setLocalInterfaceName(ifName);
                 tunnel.setLocalTunnelInetComPort(localPort);
 
@@ -1278,8 +1278,8 @@ public class V4Machine implements Runnable {
                     return null;
                 }
 
-                exitCode = wg.setDeviceInetAddr(tunnel.getLocalInterfaceName(),
-                    tunnel.getLocalTunnelInetAddr(), Integer.toString(Constants.V4_SUBNET_MASK_24));
+                exitCode = wg.setDeviceInetAddr(tunnel.getLocalInterfaceName(), tunnel.getLocalTunnelInetAddr(),
+                    Integer.toString(Constants.V4_SUBNET_MASK_24));
                 if (exitCode == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the inet address for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1291,8 +1291,7 @@ public class V4Machine implements Runnable {
                     return null;
                 }
 
-                wg.setDeviceState(tunnel.getLocalInterfaceName(),
-                    InterfaceDeviceManager.InterfaceDeviceState.UP);
+                wg.setDeviceState(tunnel.getLocalInterfaceName(), InterfaceDeviceManager.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1394,9 +1393,9 @@ public class V4Machine implements Runnable {
         PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddr(localPhysInetAddr);
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V4 device that is not in wgConnectTunnels
-            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.TUNNEL_V4_IF_NAME_PREFIX);
+            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV4));
             if (WgConnect.getTunnelByLocalIfName(ifName) != null ||
-                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.TUNNEL_V4_IF_NAME_PREFIX, remotePhysInetAddr) != null) {
+                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.getTunnelInterfacePrefix(IPVersion.IPV4), remotePhysInetAddr) != null) {
                 force = true;
             }
             
@@ -1422,7 +1421,7 @@ public class V4Machine implements Runnable {
                 }
             } else {
                 // Generate the v4 interface name
-                ifName = Utils.getNextAvailableNetIfName(Constants.TUNNEL_V4_IF_NAME_PREFIX, 0);
+                ifName = Utils.getNextAvailableNetIfName(Constants.getTunnelInterfacePrefix(IPVersion.IPV4), -1);
                 tunnel.setLocalInterfaceName(ifName);
 
                 if (!wg.generateKeys()) {
@@ -1618,7 +1617,7 @@ public class V4Machine implements Runnable {
                 
                 // Check for an existing tunnel with the offered remote public key
                 PersistenceTunnel tunnel = null;
-                if (Utils.getWgConnectIfByPrefixAndRemotePublicKey(Constants.TUNNEL_V4_IF_NAME_PREFIX,
+                if (Utils.getWgConnectIfByPrefixAndRemotePublicKey(Constants.getTunnelInterfacePrefix(IPVersion.IPV4),
                     remoteWgPublicKeyOption.getString()) != null) {
                     
                     msg.setMessageType((short) Constants.V4_MESSAGE_TYPE_REQUEST);
