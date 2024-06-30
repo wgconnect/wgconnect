@@ -17,12 +17,15 @@
  */
 package com.wgconnect.core.util;
 
+import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.ipv4.IPv4Address;
 import inet.ipaddr.ipv6.IPv6Address;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  * Constants
@@ -101,9 +104,37 @@ public class Constants {
     public static final String TUNNEL_STATUS_UP = "Up";
     public static final String TUNNEL_STATUS_DOWN = "Down";
     
-    public static final String TUNNEL_IF_BASE_NAME = "wgconnect";
-    public static final String TUNNEL_V4_IF_NAME_PREFIX = "v4" + TUNNEL_IF_BASE_NAME;
-    public static final String TUNNEL_V6_IF_NAME_PREFIX = "v6" + TUNNEL_IF_BASE_NAME;
+    private static final String TUNNEL_IF_BASE_NAME_LINUX = "wgconnect";
+    private static final String TUNNEL_V4_IF_NAME_PREFIX_LINUX = "v4" + TUNNEL_IF_BASE_NAME_LINUX;
+    private static final String TUNNEL_V6_IF_NAME_PREFIX_LINUX = "v6" + TUNNEL_IF_BASE_NAME_LINUX;
+
+    public static final String TUNNEL_IF_BASE_NAME_BSD = "wg";
+    public static final String TUNNEL_V4_IF_NAME_PREFIX_BSD = TUNNEL_IF_BASE_NAME_BSD;
+    public static final String TUNNEL_V6_IF_NAME_PREFIX_BSD = TUNNEL_IF_BASE_NAME_BSD;
+    
+    public static String getTunnelInterfaceBaseName() {
+        return (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD) ?
+            TUNNEL_IF_BASE_NAME_BSD : TUNNEL_IF_BASE_NAME_LINUX;
+    }
+    
+    public static String getTunnelInterfacePrefix(IPVersion version) {
+        String prefix;
+        if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD) {
+            if (version.isIPv6()) {
+                prefix = TUNNEL_V6_IF_NAME_PREFIX_BSD;
+            } else {
+                prefix = TUNNEL_V4_IF_NAME_PREFIX_BSD;
+            }
+        } else {
+            if (version.isIPv6()) {
+                prefix = TUNNEL_V6_IF_NAME_PREFIX_LINUX;
+            }  else {
+                prefix = TUNNEL_V4_IF_NAME_PREFIX_LINUX;
+            }
+        }
+        
+        return prefix;
+    }
     
     public static final String TUNNEL_ENDPOINT_TYPE_SERVER = "Server";
     public static final String TUNNEL_ENDPOINT_TYPE_CLIENT = "Client";
