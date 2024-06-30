@@ -21,6 +21,7 @@ import com.google.common.collect.ObjectArrays;
 
 import com.wgconnect.core.util.WgConnectLogger;
 import com.wgtools.InterfaceDeviceManager.InterfaceDeviceState;
+
 import inet.ipaddr.IPAddress.IPVersion;
 
 import java.io.BufferedReader;
@@ -68,7 +69,7 @@ public class Wg implements Runnable {
     public static final String WG_NATIVE_LIBRARY_BASE_PATH = "/natives/";
 
     public static final String OS_NAME_AIX = "aix";
-    public static final String OS_NAME_BSD_UNIX = "bsd";
+    public static final String OS_NAME_BSD = "bsd";
     public static final String OS_NAME_LINUX = "linux";
     public static final String OS_NAME_OSX = "osx";
     public static final String OS_NAME_WINDOWS = "windows";
@@ -132,7 +133,7 @@ public class Wg implements Runnable {
     }
     
     public Wg() {
-        if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_OPEN_BSD || SystemUtils.IS_OS_NET_BSD) {
+        if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD) {
             deviceMgr = new BsdDeviceManager();
         } else {
             deviceMgr = new LinuxDeviceManager();
@@ -143,13 +144,15 @@ public class Wg implements Runnable {
     
     private void init() {
         try {
-            deviceMgr.init();
-            
             commandOutputByteArrayStream = new ByteArrayOutputStream();
             commandOutputStream = new PrintStream(commandOutputByteArrayStream, true, StandardCharsets.UTF_8.name());
         } catch (UnsupportedEncodingException ex) {
             log.error("Encoding exception: " + ex);
         }
+    }
+    
+    public void setDeviceManager(InterfaceDeviceManager deviceMgr) {
+        this.deviceMgr = deviceMgr;
     }
     
     public String getPrivateKey() {
@@ -494,19 +497,27 @@ public class Wg implements Runnable {
     public void loadNativeLibrary() {
         try {
             StringBuilder nativeLibraryPathname = new StringBuilder(WG_NATIVE_LIBRARY_BASE_PATH);
-            String osName = System.getProperty("os.name");
             String osArch = System.getProperty("os.arch");
 
-            if (StringUtils.containsIgnoreCase(osName, OS_NAME_AIX)   || StringUtils.containsIgnoreCase(osName, OS_NAME_BSD_UNIX) ||
-                StringUtils.containsIgnoreCase(osName, OS_NAME_LINUX) || StringUtils.containsIgnoreCase(osName, OS_NAME_OSX) ||
-                StringUtils.containsIgnoreCase(osName, OS_NAME_WINDOWS)) {
-                nativeLibraryPathname.append(osName.toLowerCase()).append("_");
+            if (SystemUtils.IS_OS_AIX) {
+                nativeLibraryPathname.append(OS_NAME_AIX);
+            } else if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD) {
+                nativeLibraryPathname.append(OS_NAME_BSD);
+            } else if (SystemUtils.IS_OS_LINUX) {
+                nativeLibraryPathname.append(OS_NAME_LINUX);
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                nativeLibraryPathname.append(OS_NAME_OSX);
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                nativeLibraryPathname.append(OS_NAME_WINDOWS);
             } else {
-                nativeLibraryPathname.append(OS_NAME_DEFAULT.toLowerCase()).append("_");
+                nativeLibraryPathname.append(OS_NAME_DEFAULT);
             }
+            nativeLibraryPathname.append("_");
 
-            if (StringUtils.contains(osArch, OS_ARCH_64) || StringUtils.contains(osArch, OS_ARCH_32)) {
-                nativeLibraryPathname.append(osArch);
+            if (StringUtils.contains(osArch, OS_ARCH_64)) {
+                nativeLibraryPathname.append(OS_ARCH_64);
+            } else if (StringUtils.contains(osArch, OS_ARCH_32)) {
+                nativeLibraryPathname.append(OS_ARCH_32);
             } else {
                 nativeLibraryPathname.append(OS_ARCH_DEFAULT);
             }
