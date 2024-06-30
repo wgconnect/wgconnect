@@ -1208,9 +1208,9 @@ public class V6Machine implements Runnable {
         PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalTunnelInetAddr(localTunnelInetAddr);
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V6 device that is not in wgConnectTunnels
-            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.TUNNEL_V6_IF_NAME_PREFIX);
+            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV6));
             if (WgConnect.getTunnelByLocalIfName(ifName) != null ||
-                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.TUNNEL_V6_IF_NAME_PREFIX, remotePhysInetAddr) != null) {
+                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.getTunnelInterfacePrefix(IPVersion.IPV6), remotePhysInetAddr) != null) {
                 force = true;
             }
             
@@ -1236,7 +1236,7 @@ public class V6Machine implements Runnable {
                 }
             } else {
                 // Generate the v6 interface name
-                ifName = Utils.getNextAvailableNetIfName(Constants.TUNNEL_V6_IF_NAME_PREFIX, 0);
+                ifName = Utils.getNextAvailableNetIfName(Constants.getTunnelInterfacePrefix(IPVersion.IPV6), -1);
                 tunnel.setLocalInterfaceName(ifName);
                 tunnel.setLocalTunnelInetComPort(localPort);
 
@@ -1379,9 +1379,9 @@ public class V6Machine implements Runnable {
         PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddr(localPhysInetAddr);
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V6 device that is not in wgConnectTunnels
-            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.TUNNEL_V6_IF_NAME_PREFIX);
+            String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV6));
             if (WgConnect.getTunnelByLocalIfName(ifName) != null ||
-                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.TUNNEL_V6_IF_NAME_PREFIX, remotePhysInetAddr) != null) {
+                Utils.getWgConnectIfByPrefixAndEndpointAddr(Constants.getTunnelInterfacePrefix(IPVersion.IPV6), remotePhysInetAddr) != null) {
                 force = true;
             }
             
@@ -1407,7 +1407,7 @@ public class V6Machine implements Runnable {
                 }
             } else {
                 // Generate the v6 interface name
-                ifName = Utils.getNextAvailableNetIfName(Constants.TUNNEL_V6_IF_NAME_PREFIX, 0);
+                ifName = Utils.getNextAvailableNetIfName(Constants.getTunnelInterfacePrefix(IPVersion.IPV6), -1);
                 tunnel.setLocalInterfaceName(ifName);
 
                 if (!wg.generateKeys()) {
@@ -1591,7 +1591,7 @@ public class V6Machine implements Runnable {
                 
                 // Check for an existing tunnel with the offered remote public key
                 PersistenceTunnel tunnel = null;
-                if (Utils.getWgConnectIfByPrefixAndRemotePublicKey(Constants.TUNNEL_V6_IF_NAME_PREFIX,
+                if (Utils.getWgConnectIfByPrefixAndRemotePublicKey(Constants.getTunnelInterfacePrefix(IPVersion.IPV6),
                     remoteWgPublicKeyOption.getString()) != null) {
                     
                     msg.setMessageType(Constants.V6_MESSAGE_TYPE_REQUEST);
