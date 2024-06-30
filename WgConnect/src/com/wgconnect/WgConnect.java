@@ -226,7 +226,7 @@ public class WgConnect implements Runnable {
             log.info("Number of available core processors: " + cores);
             
             // Create the persistent data and log directories for the application
-            if (SystemUtils.IS_OS_LINUX || SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_OPEN_BSD || SystemUtils.IS_OS_NET_BSD) {
+            if (SystemUtils.IS_OS_UNIX) {
                 FileUtils.forceMkdir(new File(Constants.DATABASE_DIRECTORY));
                 FileUtils.forceMkdir(new File(Constants.LOG_DIRECTORY));
                 FileUtils.openOutputStream(new File(Constants.LOG_FILE));
