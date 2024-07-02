@@ -378,7 +378,7 @@ public class ConnectConfig {
                                 tunnel.setLocalPublicKey(publicKey);
                                 tunnel.setRemotePublicKey(peer);
 
-                                tunnel.setKeepalive(Integer.parseInt(persistentKeepalives.get(persistentKeepalive)));
+                                tunnel.setKeepalive(Integer.parseInt(persistentKeepalive));
 
                                 tunnel.setState(Constants.TUNNEL_STATUS_UP);
                                 Gui.addTunnel(tunnel);
