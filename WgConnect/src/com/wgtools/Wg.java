@@ -442,7 +442,7 @@ public class Wg implements Runnable {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     String[] split = line.split("\\s+");
-                    persistentKeepalives.put(split[0], split[1]);
+                    persistentKeepalives.put(split[0], StringUtils.isNumeric(split[1]) ? split[1] : "0");
                 }
             } catch (IOException ex) {
                 log.error("Exception: " + ex);
