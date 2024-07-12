@@ -34,6 +34,7 @@ import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IncompatibleAddressException;
+import inet.ipaddr.ipv4.IPv4Address;
 import inet.ipaddr.ipv4.IPv4AddressSegment;
 import inet.ipaddr.ipv6.IPv6Address;
 import inet.ipaddr.ipv6.IPv6AddressSegment;
@@ -1310,7 +1311,7 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByRemotePhysInetAddr(String remotePhysInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getRemotePhysInetAddr() != null && StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr))
+            .filter(t -> StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr))
             .findFirst()
             .orElse(null);
     }
@@ -1318,14 +1319,24 @@ public class WgConnect implements Runnable {
     public static List<PersistenceTunnel> getTunnelsByRemotePhysInetAddr(String remotePhysInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getRemotePhysInetAddr() != null && StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr))
+            .filter(t -> StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr))
             .collect(Collectors.toList());
     }
     
     public static PersistenceTunnel getTunnelByLocalPhysInetAddr(String localPhysInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getLocalPhysInetAddr() != null && StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr))
+            .filter(t -> StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr))
+            .findFirst()
+            .orElse(null);
+    }
+    
+    public static PersistenceTunnel getTunnelByLocalPhysInetAddrAndTunnelInetNet(String localPhysInetAddr, String tunnelInetNet, IPVersion ipVersion) {
+        return wgConnectTunnels
+            .stream()
+            .filter(t -> StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr) &&
+                         new IPAddressString(t.getTunnelInetNet()).getAddress(ipVersion).compareTo(
+                             new IPAddressString(tunnelInetNet).getAddress(ipVersion)) == 0)
             .findFirst()
             .orElse(null);
     }
@@ -1333,9 +1344,8 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByLocalAndRemotePhysInetAddr(String localPhysInetAddr, String remotePhysInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t ->
-                (t.getLocalPhysInetAddr() != null && StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr)) &&
-                (t.getRemotePhysInetAddr() != null && StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr)))
+            .filter(t -> StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr) &&
+                         StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr))
             .findFirst()
             .orElse(null);
     }
@@ -1343,7 +1353,7 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByLocalTunnelInetAddr(String localTunnelInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getLocalTunnelInetAddr() != null && StringUtils.equals(t.getLocalTunnelInetAddr(), localTunnelInetAddr))
+            .filter(t -> StringUtils.equals(t.getLocalTunnelInetAddr(), localTunnelInetAddr))
             .findFirst()
             .orElse(null);
     }
@@ -1351,17 +1361,25 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByRemoteTunnelInetAddr(String remoteTunnelInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getRemoteTunnelInetAddr() != null && StringUtils.equals(t.getRemoteTunnelInetAddr(), remoteTunnelInetAddr))
+            .filter(t -> StringUtils.equals(t.getRemoteTunnelInetAddr(), remoteTunnelInetAddr))
             .findFirst()
             .orElse(null);
     }
     
-    public static PersistenceTunnel getTunnelByLocalAndRemoteTunnelInetAddrs(String localTunnelInetAddr,
-        String remoteTunnelInetAddr) {
+    public static PersistenceTunnel getTunnelByLocalAndRemoteTunnelInetAddrs(String localTunnelInetAddr, String remoteTunnelInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getLocalTunnelInetAddr() != null && StringUtils.equals(t.getLocalTunnelInetAddr(), localTunnelInetAddr) &&
-                         t.getRemoteTunnelInetAddr() != null && StringUtils.equals(t.getRemoteTunnelInetAddr(), remoteTunnelInetAddr)) 
+            .filter(t -> StringUtils.equals(t.getLocalTunnelInetAddr(), localTunnelInetAddr) &&
+                         StringUtils.equals(t.getRemoteTunnelInetAddr(), remoteTunnelInetAddr)) 
+            .findFirst()
+            .orElse(null);
+    }
+    
+    public static PersistenceTunnel getTunnelByRemotePhysAndRemoteTunnelInetAddrs(String remotePhysInetAddr, String remoteTunnelInetAddr) {
+        return wgConnectTunnels
+            .stream()
+            .filter(t -> StringUtils.equals(t.getRemotePhysInetAddr(), remotePhysInetAddr) &&
+                         StringUtils.equals(t.getRemoteTunnelInetAddr(), remoteTunnelInetAddr)) 
             .findFirst()
             .orElse(null);
     }
@@ -1369,7 +1387,7 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByRemotePublicKey(String remotePublicKey) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getRemotePublicKey() != null && StringUtils.equals(t.getRemotePublicKey(), remotePublicKey)) 
+            .filter(t -> StringUtils.equals(t.getRemotePublicKey(), remotePublicKey)) 
             .findFirst()
             .orElse(null);
     }
@@ -1377,8 +1395,8 @@ public class WgConnect implements Runnable {
     public static PersistenceTunnel getTunnelByLocalAndRemotePublicKeys(String localPublicKey, String remotePublicKey) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getLocalPublicKey() != null && StringUtils.equals(t.getLocalPublicKey(), localPublicKey) &&
-                    t.getRemotePublicKey() != null && StringUtils.equals(t.getRemotePublicKey(), remotePublicKey))
+            .filter(t -> StringUtils.equals(t.getLocalPublicKey(), localPublicKey) &&
+                         StringUtils.equals(t.getRemotePublicKey(), remotePublicKey))
             .findFirst()
             .orElse(null);
     }
@@ -1388,7 +1406,7 @@ public class WgConnect implements Runnable {
         return wgConnectTunnels
             .stream()
             .filter(t -> StringUtils.equals(t.getLocalTunnelInetAddr(), localTunnelInetAddr) &&
-                t.getLocalTunnelInetComPort() == localTunnelInetComPort)
+                         t.getLocalTunnelInetComPort() == localTunnelInetComPort)
             .findFirst()
             .orElse(null);
     }
@@ -1412,7 +1430,7 @@ public class WgConnect implements Runnable {
     public static List<PersistenceTunnel> getTunnelsByLocalPhysInetAddr(String localPhysInetAddr) {
         return wgConnectTunnels
             .stream()
-            .filter(t -> t.getLocalPhysInetAddr() != null && StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr))
+            .filter(t -> StringUtils.equals(t.getLocalPhysInetAddr(), localPhysInetAddr))
             .collect(Collectors.toList());
     }
     
