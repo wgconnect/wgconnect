@@ -43,7 +43,6 @@ import inet.ipaddr.ipv6.IPv6Address;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -113,97 +112,103 @@ public class V6SolicitProcessor extends BaseV6Processor {
     @Override
     public boolean process() {
         boolean sendReply = false;
+        
+        // Validate the client's network options
+        String tunnelId = StringUtils.SPACE;
+        String remoteWgPublicKey = StringUtils.SPACE;
+        String remotePhysInetAddr = StringUtils.SPACE;
+        long remotePhysInetComPort = 0;
+        long remotePhysInetListenPort = 0;
+        String remoteTunnelInetAddr = StringUtils.SPACE;
+        long remoteTunnelInetComPort = 0;
+        String localTunnelInetAddr = StringUtils.SPACE;
+        String interfaceName = StringUtils.SPACE;
+        String tunnelNetwork = StringUtils.SPACE;
         int solicitResponse = Constants.RESPONSE_ACCEPT;
         
         try {
-            // Check the compatibility of the remoteTunnelNetwork and the localTunnelNetwork
-            IPv6Address localTunnelInetNet = new IPAddressString(v6ServerMachine.getTunnelInetNet()).getAddress().toIPv6();
-            String localTunnelInetNetPrefix = StringUtils.substringAfterLast(v6ServerMachine.getTunnelInetNet(), IPv6Address.PREFIX_LEN_SEPARATOR);
-            IPv6Address remoteTunnelInetNet = new IPAddressString(tunnelNetworkOption.getString()).getAddress().toIPv6();
-            String remoteTunnelInetNetPrefix = StringUtils.substringAfterLast(tunnelNetworkOption.getString(), IPv6Address.PREFIX_LEN_SEPARATOR);
-            IPv6Address remoteTunnelInetAddr = new IPAddressString(remoteTunnelInetAddrOption.getIpAddress()).getAddress().toIPv6();
+            IPv6Address ipLocalTunnelInetNet = new IPAddressString(v6ServerMachine.getTunnelInetNet()).getAddress().toIPv6();
+            IPv6Address ipRemoteTunnelInetNet = new IPAddressString(tunnelNetworkOption.getString()).getAddress().toIPv6();
+            IPv6Address ipRemoteTunnelInetAddr = new IPAddressString(remoteTunnelInetAddrOption.getIpAddress()).getAddress().toIPv6();
             
-            // Check for an existing connection to the remotePhysInetAddr
-            List<PersistenceTunnel> currentTunnels = WgConnect.getTunnelsByRemotePhysInetAddr(remotePhysInetAddrOption.getIpAddress());
-            if (!currentTunnels.isEmpty()) {
-                for (PersistenceTunnel t : currentTunnels) {
-                    IPv6Address tInetNet = new IPAddressString(t.getTunnelInetNet()).getAddress().toIPv6();
-                    if (tInetNet.compareTo(remoteTunnelInetNet) > 0) {
-                        localTunnelInetNet = tInetNet;
-                    }
-                    
-                    solicitResponse = Constants.RESPONSE_DECLINE_REDUNDANT_PUBLIC_KEY;
-                }
-               
-                localTunnelInetNetPrefix = Integer.toString(Math.min(Integer.parseInt(localTunnelInetNetPrefix), Integer.parseInt(remoteTunnelInetNetPrefix)));
-                v6ServerMachine.setTunnelInetNet(localTunnelInetNet.toInetAddress().getHostAddress() + IPv6Address.PREFIX_LEN_SEPARATOR +
-                    localTunnelInetNetPrefix);
-                v6ServerMachine.generateNextTunnelNet();
-                
-                remoteTunnelInetAddr = v6ServerMachine.getV6Machine().applyTunnelNet(v6ServerMachine.getTunnelInetNet(),
-                    remotePhysInetAddrOption.getIpAddress());
-            } else if (remoteTunnelInetNet.compareTo(localTunnelInetNet) != 0) {
-                log.info("The remote tunnel network {} from physical address {} is on a different from the local tunnel network {}", 
+            // Check for an existing connection to the specified remotePhysInetAddr and remoteTunnelInetAddr
+            if (WgConnect.getTunnelByRemotePhysAndRemoteTunnelInetAddrs(remotePhysInetAddrOption.getIpAddress(),
+                ipRemoteTunnelInetAddr.toCanonicalString()) != null) {
+                solicitResponse = Constants.RESPONSE_DECLINE_REDUNDANT_TUNNEL;
+            }
+            // Check for an existing connection to the remotePublicKey
+            else if (WgConnect.getTunnelByRemotePublicKey(remotePhysInetAddrOption.getIpAddress()) != null) {
+                solicitResponse = Constants.RESPONSE_DECLINE_REDUNDANT_PUBLIC_KEY;
+            }
+            // Check if the remoteTunnelInetNet differs from the current server tunnelInetNet
+            else if (ipRemoteTunnelInetNet.compareTo(ipLocalTunnelInetNet) != 0) {
+                log.info("The remote tunnel network {} from physical address {} is differs from the local tunnel network {}",
                     tunnelNetworkOption.getString(), remotePhysInetAddrOption.getIpAddress(), v6ServerMachine.getTunnelInetNet());
 
-                if (v6ServerMachine.getReferenceTunnel() == null) {
-                    v6ServerMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
-                    v6ServerMachine.setTunnelInetNet(tunnelNetworkOption.getString());
-                } else {
-                    remoteTunnelInetAddr = v6ServerMachine.getV6Machine().applyTunnelNet(v6ServerMachine.getTunnelInetNet(),
-                        remotePhysInetAddrOption.getIpAddress());
+                v6ServerMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
+                v6ServerMachine.setTunnelInetNet(tunnelNetworkOption.getString());
+            }
+            // The Discover options are valid
+            else {
+
+                PersistenceTunnel tunnel = v6ServerMachine.getV6Machine().createTunnelAsServer(
+                    v6ServerMachine,
+                    Integer.parseInt(remoteIdOption.getString()),
+                    Constants.TUNNEL_ENDPOINT_TYPE_SERVER,
+                    Constants.TUNNEL_ENDPOINT_TYPE_CLIENT,
+                    v6ServerMachine.getLocalPhysInetAddr(),
+                    remotePhysInetAddrOption.getIpAddress(),
+                    remotePhysInetComPortOption.getUnsignedInt(),
+                    StringUtils.substringBefore(ipRemoteTunnelInetAddr.toInetAddress().getHostAddress(), IPv6Address.PREFIX_LEN_SEPARATOR),
+                    v6ServerMachine.getLocalTunnelInetAddr(),
+                    v6ServerMachine.getTunnelInetNet(),
+                    false);
+
+                if (tunnel != null && tunnel.getLocalTunnelInetAddr() != null && tunnel.getRemoteTunnelInetAddr() != null) {
+
+                    v6ServerMachine.setPersistenceTunnel(tunnel);
+
+                    replyMsg = new V6Message(requestMsg.getLocalAddress(),
+                        new InetSocketAddress(InetAddress.getByName(remotePhysInetAddrOption.getIpAddress()),
+                            (int) remotePhysInetComPortOption.getUnsignedInt()));
+                    replyMsg.setMessageType(Constants.V6_MESSAGE_TYPE_ADVERTISE);
+                    replyMsg.setMessageSender(Constants.V6_MESSAGE_SENDER_SERVER);
+                    replyMsg.setTransactionId(requestMsg.getTransactionId());
+
+                    tunnelId = tunnel.getId().toString();
+                    remoteWgPublicKey = tunnel.getLocalPublicKey();
+                    remotePhysInetAddr = tunnel.getLocalPhysInetAddr();
+                    remotePhysInetComPort = tunnel.getLocalPhysInetComPort();
+                    remotePhysInetListenPort = tunnel.getLocalPhysInetListenPort();
+                    remoteTunnelInetAddr = tunnel.getLocalTunnelInetAddr();
+                    remoteTunnelInetComPort = tunnel.getLocalTunnelInetComPort();
+                    localTunnelInetAddr = tunnel.getRemoteTunnelInetAddr();
+                    interfaceName = tunnel.getLocalInterfaceName();
+                    tunnelNetwork = v6ServerMachine.getTunnelInetNet();
+
+                    v6ServerMachine.setPersistenceTunnel(tunnel);
+
+                    connectConfig.updatePersistenceDatabase(tunnel);
+
+                    tunnel.setState(Constants.V6_TUNNEL_STATUS_SOLICIT);
+                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
             
-            PersistenceTunnel tunnel = v6ServerMachine.getV6Machine().createTunnelAsServer(
-                v6ServerMachine,
-                Integer.parseInt(remoteIdOption.getString()),
-                Constants.TUNNEL_ENDPOINT_TYPE_SERVER,
-                Constants.TUNNEL_ENDPOINT_TYPE_CLIENT,
-                v6ServerMachine.getLocalPhysInetAddr(),
-                remotePhysInetAddrOption.getIpAddress(),
-                remotePhysInetComPortOption.getUnsignedInt(),
-                StringUtils.substringBefore(remoteTunnelInetAddr.toInetAddress().getHostAddress(), IPv6Address.PREFIX_LEN_SEPARATOR),
-                v6ServerMachine.getLocalTunnelInetAddr(),
-                v6ServerMachine.getTunnelInetNet(),
-                false);
+            replyMsg.putOption(remoteIdOption);
+            replyMsg.putOption(new TunnelIdOption(tunnelId, false));
+            replyMsg.putOption(new RemoteWgPublicKeyOption(remoteWgPublicKey, false));
+            replyMsg.putOption(new RemotePhysInetAddrOption(remotePhysInetAddr, false));
+            replyMsg.putOption(new RemotePhysInetComPortOption(remotePhysInetComPort, false));
+            replyMsg.putOption(new RemotePhysInetListenPortOption(remotePhysInetListenPort, false));
+            replyMsg.putOption(new RemoteTunnelInetAddrOption(remoteTunnelInetAddr, false));
+            replyMsg.putOption(new RemoteTunnelInetComPortOption(remoteTunnelInetComPort, false));
+            replyMsg.putOption(new LocalTunnelInetAddrOption(localTunnelInetAddr, false));
+            replyMsg.putOption(new InterfaceNameOption(interfaceName, false));
+            replyMsg.putOption(new TunnelNetworkOption(tunnelNetwork, false));
+            replyMsg.putOption(new GenericResponseOption(solicitResponse, false));
 
-            if (tunnel != null && tunnel.getLocalTunnelInetAddr() != null && tunnel.getRemoteTunnelInetAddr() != null) {
-                
-                v6ServerMachine.setPersistenceTunnel(tunnel);
-                
-                replyMsg = new V6Message(requestMsg.getLocalAddress(),
-                    new InetSocketAddress(InetAddress.getByName(remotePhysInetAddrOption.getIpAddress()),
-                    (int) remotePhysInetComPortOption.getUnsignedInt()));
-                replyMsg.setMessageType(Constants.V6_MESSAGE_TYPE_ADVERTISE);
-                replyMsg.setMessageSender(Constants.V6_MESSAGE_SENDER_SERVER);
-                replyMsg.setTransactionId(requestMsg.getTransactionId());
-
-                replyMsg.putOption(remoteIdOption);
-                replyMsg.putOption(new TunnelIdOption(tunnel.getId().toString(), false));
-                replyMsg.putOption(new RemoteWgPublicKeyOption(tunnel.getLocalPublicKey(), false));
-                replyMsg.putOption(new RemotePhysInetAddrOption(tunnel.getLocalPhysInetAddr(), false));
-                replyMsg.putOption(new RemotePhysInetComPortOption(tunnel.getLocalPhysInetComPort(), false));
-                replyMsg.putOption(new RemotePhysInetListenPortOption(tunnel.getLocalPhysInetListenPort(), false));
-                replyMsg.putOption(new RemoteTunnelInetAddrOption(tunnel.getLocalTunnelInetAddr(), false));
-                replyMsg.putOption(new RemoteTunnelInetComPortOption(tunnel.getLocalTunnelInetComPort(), false));
-                replyMsg.putOption(new LocalTunnelInetAddrOption(tunnel.getRemoteTunnelInetAddr(), false));
-                replyMsg.putOption(new InterfaceNameOption(tunnel.getLocalInterfaceName(), false));
-                replyMsg.putOption(new TunnelNetworkOption(v6ServerMachine.getTunnelInetNet(), false));
-                replyMsg.putOption(new GenericResponseOption(solicitResponse, false));
-
-                tunnel.setState(Constants.V6_TUNNEL_STATUS_SOLICIT);
-                Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
-                
-                v6ServerMachine.setPersistenceTunnel(tunnel);
-                
-                connectConfig.updatePersistenceDatabase(tunnel);
-                
-                tunnel.setState(Constants.V6_TUNNEL_STATUS_SOLICIT);
-                Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
-
-                sendReply = true;
-            }
+            sendReply = true;
         } catch (Exception ex) {
             log.error("Unable to process V6 Solicit: " + ex);
         }
