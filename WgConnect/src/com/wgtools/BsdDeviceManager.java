@@ -111,17 +111,6 @@ public class BsdDeviceManager implements InterfaceDeviceManager {
         return inetAddr;
     }
     
-    /*XXX
-    $ route -n get -host 192.168.1.78
-       route to: 192.168.1.78
-    destination: 192.168.1.0
-           mask: 255.255.255.0
-            fib: 0
-      interface: em0
-          flags: <UP,DONE,PINNED>
-     recvpipe  sendpipe  ssthresh  rtt,msec    mtu        weight    expire
-           0         0         0         0      1500         1         0 
-    */
     private static final String COMMAND_GET_ENDPOINT = "route -n get -host ";
     private static final String ENDPOINT_TAG = "destination:";
     
