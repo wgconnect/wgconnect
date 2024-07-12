@@ -19,37 +19,16 @@ package com.wgconnect.machine;
 
 import com.wgconnect.WgConnect;
 import com.wgconnect.machine.processor.V4RequestProcessor;
-import com.wgconnect.machine.processor.V4DiscoverProcessor;
 import com.wgconnect.config.ConfigException;
 import com.wgconnect.config.ConnectConfig;
 import com.wgconnect.core.message.V4Message;
-import com.wgconnect.core.option.machine.GenericIdOption;
-import com.wgconnect.core.option.machine.SpecificInfoOption;
-import com.wgconnect.core.option.machine.InterfaceNameOption;
-import com.wgconnect.core.option.machine.LocalEndpointTypeOption;
-import com.wgconnect.core.option.machine.LocalPhysInetComPortOption;
-import com.wgconnect.core.option.machine.LocalPhysInetAddrOption;
-import com.wgconnect.core.option.machine.LocalPhysInetListenPortOption;
-import com.wgconnect.core.option.machine.LocalWgPublicKeyOption;
-import com.wgconnect.core.option.machine.LocalTunnelInetAddrOption;
-import com.wgconnect.core.option.machine.GenericResponseOption;
-import com.wgconnect.core.option.machine.RemoteEndpointTypeOption;
-import com.wgconnect.core.option.machine.RemotePhysInetComPortOption;
-import com.wgconnect.core.option.machine.RemotePhysInetAddrOption;
-import com.wgconnect.core.option.machine.RemotePhysInetListenPortOption;
-import com.wgconnect.core.option.machine.PingInetAddrOption;
-import com.wgconnect.core.option.machine.PingInetPortOption;
-import com.wgconnect.core.option.machine.RemoteWgPublicKeyOption;
-import com.wgconnect.core.option.machine.RemoteTunnelInetComPortOption;
-import com.wgconnect.core.option.machine.RemoteTunnelInetAddrOption;
-import com.wgconnect.core.option.machine.TunnelIdOption;
-import com.wgconnect.core.option.machine.TunnelNetworkOption;
-import com.wgconnect.core.option.machine.TunnelStatusOption;
+import com.wgconnect.core.option.machine.*;
 import com.wgconnect.core.util.Constants;
 import com.wgconnect.core.util.WgConnectLogger;
 import com.wgconnect.core.util.Utils;
 import com.wgconnect.db.persistence.PersistenceTunnel;
 import com.wgconnect.gui.Gui;
+import com.wgconnect.machine.processor.V4DiscoverProcessor;
 import com.wgconnect.machine.processor.V4PingProcessor;
 
 import com.wgtools.InterfaceDeviceManager;
@@ -662,13 +641,11 @@ public class V4Machine implements Runnable {
             int tunnelNetPrefixLen;
             if (tunnelNetIPAddrStr.isPrefixed()) {
                 tunnelNetPrefixLen = tunnelNetIPAddrStr.getNetworkPrefixLength();
-                if (tunnelNetPrefixLen < IPv4Address.BITS_PER_SEGMENT ||
-                    tunnelNetPrefixLen > Constants.V4_MAX_TUNNEL_NETWORK_PREFIX_LEN) {
+                if (tunnelNetPrefixLen < IPv4Address.BITS_PER_SEGMENT || tunnelNetPrefixLen > Constants.V4_MAX_TUNNEL_NETWORK_PREFIX_LEN) {
                     tunnelNetPrefixLen = IPv4Address.BITS_PER_SEGMENT;
                 }
             } else {
-                tunnelNetIPAddrStr = new IPAddressString(tunnelNet + IPv4Address.PREFIX_LEN_SEPARATOR +
-                    IPv4Address.BITS_PER_SEGMENT);
+                tunnelNetIPAddrStr = new IPAddressString(tunnelNet + IPv4Address.PREFIX_LEN_SEPARATOR + IPv4Address.BITS_PER_SEGMENT);
                 tunnelNetPrefixLen = tunnelNetIPAddrStr.getNetworkPrefixLength();
             }
             
@@ -893,7 +870,7 @@ public class V4Machine implements Runnable {
                     state = Constants.V4_MESSAGE_TYPE_TUNNEL_PING_REPLY;
 
                     PersistenceTunnel tunnel = checkPingReplyMessage(this, pingReplyMsg);
-                    log.info("A valid remote tunnel ping reply was{}received.", (tunnel == null ? " not " : " "));
+                    log.info("A valid remote tunnel ping reply was{}received from.", (tunnel == null ? " not " : " "), getRemotePhysInetAddr());
                 }
             } catch (InterruptedException ex) {
                 log.info(ex.getMessage());
@@ -915,12 +892,12 @@ public class V4Machine implements Runnable {
                         
                     case Constants.V4_MESSAGE_TYPE_REQUEST:
                         requestsSent.getAndIncrement();
-                        log.info("Successfully sent request message cnt = {}", requestsSent);
+                        log.info("Successfully sent request message to {}, cnt = {}", getRemotePhysInetAddr(), requestsSent);
                         break;
                         
                     case Constants.V4_MESSAGE_TYPE_TUNNEL_PING:
                         tunnelPingsSent.getAndIncrement();
-                        log.info("Successfully sent tunnel ping message cnt = {}", tunnelPingsSent);
+                        log.info("Successfully sent tunnel ping message to {}, cnt = {}", getRemotePhysInetAddr(), tunnelPingsSent);
                         break;
 
                     default:
@@ -943,8 +920,6 @@ public class V4Machine implements Runnable {
      * The ServerMachine class
      */
     public class ServerMachine extends Machine implements ChannelFutureListener {
-                
-        PersistenceTunnel referenceTunnel = null;
         
         AtomicInteger discoversReceived = new AtomicInteger();
         AtomicInteger offersSent = new AtomicInteger();
@@ -978,27 +953,10 @@ public class V4Machine implements Runnable {
             replySemaphore.drainPermits();
         }
         
-        public PersistenceTunnel getReferenceTunnel() {
-            return referenceTunnel;
-        }
-        
         @Override
         public void run() {
             serverMachine = this;
             
-            // Check for a tunnel with the localPhysInetAddr and the remotePhysInetAddr
-            if (WgConnect.getTunnelByLocalAndRemotePhysInetAddr(localPhysInetSockAddr.getAddress().getHostAddress(),
-                remotePhysInetSockAddr.getAddress().getHostAddress()) != null) {
-                return;
-            }
-            
-            // Find all current tunnels using the localPhysInetAddr
-            List<PersistenceTunnel> tunnels = WgConnect.getTunnelsByLocalPhysInetAddr(localPhysInetSockAddr.getAddress().getHostAddress());
-            if (!tunnels.isEmpty()) {
-                referenceTunnel = tunnels.get(0);
-                tunnelInetNet = referenceTunnel.getTunnelInetNet();
-            }
-
             waitForDiscover();
             
             serverMachine = null;
@@ -1193,7 +1151,7 @@ public class V4Machine implements Runnable {
         String remotePhysInetAddr, String localPhysInetAddr, String remoteTunnelInetAddr, String localTunnelInetAddr,
         String remotePublicKey, long remoteListenPort, long remoteTunnelInetComPort, String tunnelNet, 
         String remoteInterfaceName, boolean force) {
-        
+
         PersistenceTunnel tunnel = new PersistenceTunnel();
         tunnel.setInetType(IPVersion.IPV4.toString());
         tunnel.setId(UUID.fromString(tunnelId));
@@ -1211,7 +1169,7 @@ public class V4Machine implements Runnable {
 
         tunnel.setRemoteTunnelInetAddr(remoteTunnelInetAddr);
         tunnel.setRemoteTunnelInetComPort(remoteTunnelInetComPort);
-        tunnel.setTunnelNet(tunnelNet);
+        tunnel.setTunnelInetNet(tunnelNet);
         
         tunnel.setRemotePublicKey(remotePublicKey);
         tunnel.setRemotePhysInetListenPort(remoteListenPort);
@@ -1364,7 +1322,7 @@ public class V4Machine implements Runnable {
 
     public synchronized PersistenceTunnel createTunnelAsServer(ServerMachine v4ServerMachine, int remoteId,
         String localEndpointType, String remoteEndpointType, String localPhysInetAddr, String remotePhysInetAddr,
-        long remotePhysInetComPort, String remoteTunnelInetAddr, String localTunnelInetAddr, String tunnelNet,
+        long remotePhysInetComPort, String remoteTunnelInetAddr, String localTunnelInetAddr, String tunnelInetNet,
         boolean force) throws Exception {
         
         PersistenceTunnel tunnel = new PersistenceTunnel();
@@ -1384,13 +1342,14 @@ public class V4Machine implements Runnable {
         
         tunnel.setRemoteEndpointType(remoteEndpointType);
         tunnel.setLocalEndpointType(localEndpointType);
-        tunnel.setTunnelNet(tunnelNet);
+        tunnel.setTunnelInetNet(tunnelInetNet);
 
         tunnel.setKeepalive(WgConnect.getPersistentKeepalive());
         
         Wg wg = new Wg();
         
-        PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddr(localPhysInetAddr);
+        PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddrAndTunnelInetNet(localPhysInetAddr, tunnelInetNet, IPVersion.IPV4);
+
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V4 device that is not in wgConnectTunnels
             String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV4));
@@ -1661,8 +1620,8 @@ public class V4Machine implements Runnable {
 
                         clientMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
                     } else {
-                        log.info("The offered local tunnel address {} is the same as the current local tunnel address {}",
-                            localTunnelInetAddrOption.getIpAddress(), clientMachine.getLocalTunnelInetAddr());
+                        log.info("From {}: the offered local tunnel address {} is the same as the current local tunnel address {}",
+                            clientMachine.getRemotePhysInetAddr(), localTunnelInetAddrOption.getIpAddress(), clientMachine.getLocalTunnelInetAddr());
                     }
 
                     boolean force = false;
