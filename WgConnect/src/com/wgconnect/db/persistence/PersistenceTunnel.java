@@ -231,7 +231,7 @@ public class PersistenceTunnel implements Serializable {
         return remoteTunnelInetAddr;
     }
     
-    public void setTunnelNet(String net) {
+    public void setTunnelInetNet(String net) {
         tunnelInetNet = net;
     }
     
