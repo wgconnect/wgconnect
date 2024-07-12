@@ -23,29 +23,7 @@ import com.wgconnect.config.ConnectConfig;
 import com.wgconnect.machine.processor.V6RequestProcessor;
 import com.wgconnect.machine.processor.V6SolicitProcessor;
 import com.wgconnect.core.message.V6Message;
-import com.wgconnect.core.option.machine.InterfaceNameOption;
-import com.wgconnect.core.option.machine.LocalTunnelInetAddrOption;
-import com.wgconnect.core.option.machine.RemotePhysInetComPortOption;
-import com.wgconnect.core.option.machine.RemotePhysInetAddrOption;
-import com.wgconnect.core.option.machine.RemoteTunnelInetComPortOption;
-import com.wgconnect.core.option.machine.RemoteTunnelInetAddrOption;
-import com.wgconnect.core.option.machine.TunnelIdOption;
-import com.wgconnect.core.option.machine.GenericIdOption;
-import com.wgconnect.core.option.machine.SpecificInfoOption;
-import com.wgconnect.core.option.machine.LocalEndpointTypeOption;
-import com.wgconnect.core.option.machine.LocalPhysInetAddrOption;
-import com.wgconnect.core.option.machine.LocalPhysInetComPortOption;
-import com.wgconnect.core.option.machine.LocalPhysInetListenPortOption;
-import com.wgconnect.core.option.machine.LocalWgPublicKeyOption;
-import com.wgconnect.core.option.machine.MsgTypeOption;
-import com.wgconnect.core.option.machine.GenericResponseOption;
-import com.wgconnect.core.option.machine.RemoteEndpointTypeOption;
-import com.wgconnect.core.option.machine.RemotePhysInetListenPortOption;
-import com.wgconnect.core.option.machine.PingInetAddrOption;
-import com.wgconnect.core.option.machine.PingInetPortOption;
-import com.wgconnect.core.option.machine.RemoteWgPublicKeyOption;
-import com.wgconnect.core.option.machine.TunnelNetworkOption;
-import com.wgconnect.core.option.machine.TunnelStatusOption;
+import com.wgconnect.core.option.machine.*;
 import com.wgconnect.core.util.Constants;
 import com.wgconnect.core.util.Utils;
 import com.wgconnect.core.util.WgConnectLogger;
@@ -648,13 +626,11 @@ public class V6Machine implements Runnable {
             int tunnelNetPrefixLen;
             if (tunnelNetIPAddrStr.isPrefixed()) {
                 tunnelNetPrefixLen = tunnelNetIPAddrStr.getNetworkPrefixLength();
-                if (tunnelNetPrefixLen < IPv6Address.BITS_PER_SEGMENT ||
-                    tunnelNetPrefixLen > Constants.V6_MAX_TUNNEL_NETWORK_PREFIX_LEN) {
+                if (tunnelNetPrefixLen < IPv6Address.BITS_PER_SEGMENT || tunnelNetPrefixLen > Constants.V6_MAX_TUNNEL_NETWORK_PREFIX_LEN) {
                     tunnelNetPrefixLen = IPv6Address.BITS_PER_SEGMENT;
                 }
             } else {
-                tunnelNetIPAddrStr = new IPAddressString(tunnelInetNet + IPv6Address.PREFIX_LEN_SEPARATOR +
-                    IPv6Address.BITS_PER_SEGMENT);
+                tunnelNetIPAddrStr = new IPAddressString(tunnelInetNet + IPv6Address.PREFIX_LEN_SEPARATOR + IPv6Address.BITS_PER_SEGMENT);
                 tunnelNetPrefixLen = tunnelNetIPAddrStr.getNetworkPrefixLength();
             }
             
@@ -879,7 +855,7 @@ public class V6Machine implements Runnable {
                     state = Constants.V6_MESSAGE_TYPE_TUNNEL_PING_REPLY;
 
                     PersistenceTunnel tunnel = checkPingReplyMessage(this, pingReplyMsg);
-                    log.info("A valid remote tunnel ping reply was{}received.", (tunnel == null ? " not " : " "));
+                    log.info("A valid remote tunnel ping reply was{}received from.", (tunnel == null ? " not " : " "), getRemotePhysInetAddr());
                 }
             } catch (InterruptedException ex) {
                 log.info(ex.getMessage());
@@ -901,12 +877,12 @@ public class V6Machine implements Runnable {
                         
                     case Constants.V6_MESSAGE_TYPE_REQUEST:
                         requestsSent.getAndIncrement();
-                        log.info("Successfully sent request message clientId = {} cnt = {}", id, requestsSent);
+                        log.info("Successfully sent request message to {}, cnt = {}", getRemotePhysInetAddr(), requestsSent);
                         break;
                         
                     case Constants.V6_MESSAGE_TYPE_TUNNEL_PING:
                         tunnelPingsSent.getAndIncrement();
-                        log.info("Successfully sent tunnel ping message cnt = {}", tunnelPingsSent);
+                        log.info("Successfully sent tunnel ping message to {}, cnt = {}", getRemotePhysInetAddr(), tunnelPingsSent);
                         break;
                     
                     default:
@@ -969,12 +945,6 @@ public class V6Machine implements Runnable {
         @Override
         public void run() {
             serverMachine = this;
-            
-            // Check for a tunnel with the localPhysInetAddr and the remotePhysInetAddr
-            if (WgConnect.getTunnelByLocalAndRemotePhysInetAddr(localPhysInetSockAddr.getAddress().getHostAddress(),
-                remotePhysInetSockAddr.getAddress().getHostAddress()) != null) {
-                return;
-            }
             
             // Find all current tunnels using the localPhysInetAddr
             List<PersistenceTunnel> tunnels = WgConnect.getTunnelsByLocalPhysInetAddr(localPhysInetSockAddr.getAddress().getHostAddress());
@@ -1195,7 +1165,7 @@ public class V6Machine implements Runnable {
 
         tunnel.setRemoteTunnelInetAddr(remoteTunnelInetAddr);
         tunnel.setRemoteTunnelInetComPort(remoteTunnelInetComPort);
-        tunnel.setTunnelNet(tunnelNet);
+        tunnel.setTunnelInetNet(tunnelNet);
         
         tunnel.setRemotePublicKey(remotePublicKey);
         tunnel.setRemotePhysInetListenPort(remoteListenPort);
@@ -1370,7 +1340,7 @@ public class V6Machine implements Runnable {
         
         tunnel.setRemoteEndpointType(remoteEndpointType);
         tunnel.setLocalEndpointType(localEndpointType);
-        tunnel.setTunnelNet(tunnelNet);
+        tunnel.setTunnelInetNet(tunnelNet);
 
         tunnel.setKeepalive(WgConnect.getPersistentKeepalive());
         
@@ -1636,8 +1606,8 @@ public class V6Machine implements Runnable {
 
                         clientMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
                     } else {
-                        log.info("The offered local tunnel address {} is the same as the current local tunnel address {}",
-                            localTunnelInetAddrOption.getIpAddress(), clientMachine.getLocalTunnelInetAddr());
+                        log.info("From {}: the offered local tunnel address {} is the same as the current local tunnel address {}",
+                            clientMachine.getRemotePhysInetAddr(), localTunnelInetAddrOption.getIpAddress(), clientMachine.getLocalTunnelInetAddr());
                     }
 
                     boolean force = false;
