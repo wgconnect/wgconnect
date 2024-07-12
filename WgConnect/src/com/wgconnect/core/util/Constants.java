@@ -244,6 +244,7 @@ public class Constants {
     public static final int RESPONSE_ACCEPT = 0;
     public static final int RESPONSE_DECLINE_REDUNDANT_PUBLIC_KEY = 1;
     public static final int RESPONSE_DECLINE_TUNNEL_NETWORK = 2;
+    public static final int RESPONSE_DECLINE_REDUNDANT_TUNNEL = 3;
  
     // V6 Constants
     public static final int V6_PORT = 547;
