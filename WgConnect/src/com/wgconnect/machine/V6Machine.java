@@ -1319,7 +1319,7 @@ public class V6Machine implements Runnable {
     
     public synchronized PersistenceTunnel createTunnelAsServer(ServerMachine v6ServerMachine, int remoteId,
         String localEndpointType, String remoteEndpointType, String localPhysInetAddr, String remotePhysInetAddr,
-        long remotePhysInetComPort, String remoteTunnelInetAddr, String localTunnelInetAddr, String tunnelNet,
+        long remotePhysInetComPort, String remoteTunnelInetAddr, String localTunnelInetAddr, String tunnelInetNet,
         boolean force) throws Exception {
         
         PersistenceTunnel tunnel = new PersistenceTunnel();
@@ -1340,13 +1340,14 @@ public class V6Machine implements Runnable {
         
         tunnel.setRemoteEndpointType(remoteEndpointType);
         tunnel.setLocalEndpointType(localEndpointType);
-        tunnel.setTunnelInetNet(tunnelNet);
+        tunnel.setTunnelInetNet(tunnelInetNet);
 
         tunnel.setKeepalive(WgConnect.getPersistentKeepalive());
         
         Wg wg = new Wg();
         
-        PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddr(localPhysInetAddr);
+        PersistenceTunnel referenceTunnel = WgConnect.getTunnelByLocalPhysInetAddrAndTunnelInetNet(localPhysInetAddr, tunnelInetNet, IPVersion.IPV6);
+
         if (force || referenceTunnel == null) {
             // Check for an existing WgConnect V6 device that is not in wgConnectTunnels
             String ifName = Utils.getAnyExistingWgConnectIfByPrefix(Constants.getTunnelInterfacePrefix(IPVersion.IPV6));
