@@ -37,14 +37,13 @@ import com.wgconnect.core.util.Constants;
 import com.wgconnect.core.util.WgConnectLogger;
 import com.wgconnect.db.persistence.PersistenceTunnel;
 import com.wgconnect.gui.Gui;
+import static com.wgconnect.machine.processor.BaseV4Processor.connectConfig;
 
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.ipv4.IPv4Address;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -114,101 +113,111 @@ public class V4DiscoverProcessor extends BaseV4Processor {
     @Override
     public boolean process() {
         boolean sendReply = false;
+
+        // Validate the client's network options
+        String tunnelId = StringUtils.SPACE;
+        String remoteWgPublicKey = StringUtils.SPACE;
+        String remotePhysInetAddr = StringUtils.SPACE;
+        long remotePhysInetComPort = 0;
+        long remotePhysInetListenPort = 0;
+        String remoteTunnelInetAddr = StringUtils.SPACE;
+        long remoteTunnelInetComPort = 0;
+        String localTunnelInetAddr = StringUtils.SPACE;
+        String interfaceName = StringUtils.SPACE;
+        String tunnelNetwork = StringUtils.SPACE;
         int discoverResponse = Constants.RESPONSE_ACCEPT;
 
         try {
-            // Check the compatibility of the remoteTunnelNetwork and the localTunnelNetwork
-            IPv4Address localTunnelInetNet = new IPAddressString(v4ServerMachine.getTunnelInetNet()).getAddress().toIPv4();
-            String localTunnelInetNetPrefix = StringUtils.substringAfterLast(v4ServerMachine.getTunnelInetNet(), IPv4Address.PREFIX_LEN_SEPARATOR);
-            IPv4Address remoteTunnelInetNet = new IPAddressString(tunnelNetworkOption.getString()).getAddress().toIPv4();
-            String remoteTunnelInetNetPrefix = StringUtils.substringAfterLast(tunnelNetworkOption.getString(), IPv4Address.PREFIX_LEN_SEPARATOR);
-            IPv4Address remoteTunnelInetAddr = new IPAddressString(remoteTunnelInetAddrOption.getIpAddress()).getAddress().toIPv4();
+            IPv4Address ipLocalTunnelInetNet = new IPAddressString(v4ServerMachine.getTunnelInetNet()).getAddress().toIPv4();
+            IPv4Address ipRemoteTunnelInetNet = new IPAddressString(tunnelNetworkOption.getString()).getAddress().toIPv4();
+            IPv4Address ipRemoteTunnelInetAddr = new IPAddressString(remoteTunnelInetAddrOption.getIpAddress()).getAddress().toIPv4();
             
-            // Check for an existing connection to the remotePhysInetAddr
-            List<PersistenceTunnel> currentTunnels = WgConnect.getTunnelsByRemotePhysInetAddr(remotePhysInetAddrOption.getIpAddress());
-            if (!currentTunnels.isEmpty()) {
-                for (PersistenceTunnel t : currentTunnels) {
-                    IPv4Address tInetNet = new IPAddressString(t.getTunnelInetNet()).getAddress().toIPv4();
-                    if (tInetNet.compareTo(remoteTunnelInetNet) > 0) {
-                        localTunnelInetNet = tInetNet;
-                    }
-                    
-                    discoverResponse = Constants.RESPONSE_DECLINE_REDUNDANT_PUBLIC_KEY;
-                }
-               
-                localTunnelInetNetPrefix = Integer.toString(Math.min(Integer.parseInt(localTunnelInetNetPrefix), Integer.parseInt(remoteTunnelInetNetPrefix)));
-                v4ServerMachine.setTunnelInetNet(localTunnelInetNet.toInetAddress().getHostAddress() + IPv4Address.PREFIX_LEN_SEPARATOR +
-                    localTunnelInetNetPrefix);
-                v4ServerMachine.generateNextTunnelNet();
-                
-                remoteTunnelInetAddr = v4ServerMachine.getV4Machine().applyTunnelNet(v4ServerMachine.getTunnelInetNet(),
-                    remotePhysInetAddrOption.getIpAddress());
-            } else if (remoteTunnelInetNet.compareTo(localTunnelInetNet) != 0) {
-                log.info("The remote tunnel network {} from physical address {} is on a different from the local tunnel network {}", 
+            // Check for an existing connection to the specified remotePhysInetAddr and remoteTunnelInetAddr
+            if (WgConnect.getTunnelByRemotePhysAndRemoteTunnelInetAddrs(remotePhysInetAddrOption.getIpAddress(),
+                ipRemoteTunnelInetAddr.toCanonicalString()) != null) {
+                discoverResponse = Constants.RESPONSE_DECLINE_REDUNDANT_TUNNEL;
+            }
+            // Check for an existing connection to the remotePublicKey
+            else if (WgConnect.getTunnelByRemotePublicKey(remotePhysInetAddrOption.getIpAddress()) != null) {
+                discoverResponse = Constants.RESPONSE_DECLINE_REDUNDANT_PUBLIC_KEY;
+            }
+            // Check if the remoteTunnelInetNet differs from the current server tunnelInetNet
+            else if (ipRemoteTunnelInetNet.compareTo(ipLocalTunnelInetNet) != 0) {
+                log.info("The remote tunnel network {} from physical address {} is differs from the local tunnel network {}",
                     tunnelNetworkOption.getString(), remotePhysInetAddrOption.getIpAddress(), v4ServerMachine.getTunnelInetNet());
 
-                if (v4ServerMachine.getReferenceTunnel() == null) {
-                    v4ServerMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
-                    v4ServerMachine.setTunnelInetNet(tunnelNetworkOption.getString());
-                } else {
-                    remoteTunnelInetAddr = v4ServerMachine.getV4Machine().applyTunnelNet(v4ServerMachine.getTunnelInetNet(),
-                        remotePhysInetAddrOption.getIpAddress());
+                v4ServerMachine.configureLocalTunnelAddr(tunnelNetworkOption.getString());
+                v4ServerMachine.setTunnelInetNet(tunnelNetworkOption.getString());
+            }
+            
+            // The Discover options are valid
+            if (discoverResponse == Constants.RESPONSE_ACCEPT) {
+                
+                PersistenceTunnel tunnel = v4ServerMachine.getV4Machine().createTunnelAsServer(
+                    v4ServerMachine,
+                    Integer.parseInt(remoteIdOption.getString()),
+                    Constants.TUNNEL_ENDPOINT_TYPE_SERVER,
+                    Constants.TUNNEL_ENDPOINT_TYPE_CLIENT,
+                    v4ServerMachine.getLocalPhysInetAddr(),
+                    remotePhysInetAddrOption.getIpAddress(),
+                    remotePhysInetComPortOption.getUnsignedInt(),
+                    StringUtils.substringBefore(ipRemoteTunnelInetAddr.toInetAddress().getHostAddress(), IPv4Address.PREFIX_LEN_SEPARATOR),
+                    v4ServerMachine.getLocalTunnelInetAddr(),
+                    v4ServerMachine.getTunnelInetNet(),
+                    false);
+
+                if (tunnel != null && tunnel.getLocalTunnelInetAddr() != null && tunnel.getRemoteTunnelInetAddr() != null) {
+
+                    v4ServerMachine.setPersistenceTunnel(tunnel);
+
+                    replyMsg = new V4Message(requestMsg.getLocalAddress(),
+                        new InetSocketAddress(InetAddress.getByName(remotePhysInetAddrOption.getIpAddress()),
+                            (int) remotePhysInetComPortOption.getUnsignedInt()));
+                    replyMsg.setOp((short) Constants.V4_OP_REPLY);
+                    replyMsg.setHtype(requestMsg.getHtype());
+                    replyMsg.setTransactionId(requestMsg.getTransactionId());
+                    replyMsg.setClientAddr(requestMsg.getClientAddr());
+                    replyMsg.setClientPort(requestMsg.getClientPort());
+                    replyMsg.setServerAddr(v4ServerMachine.getLocalPhysInetSockAddr().getAddress());
+                    replyMsg.setServerPort(v4ServerMachine.getLocalPhysInetSockAddr().getPort());
+
+                    replyMsg.setMessageType((short) Constants.V4_MESSAGE_TYPE_OFFER);
+                    replyMsg.setMessageSender((short) Constants.V4_MESSAGE_SENDER_SERVER);
+
+                    tunnelId = tunnel.getId().toString();
+                    remoteWgPublicKey = tunnel.getLocalPublicKey();
+                    remotePhysInetAddr = tunnel.getLocalPhysInetAddr();
+                    remotePhysInetComPort = tunnel.getLocalPhysInetComPort();
+                    remotePhysInetListenPort = tunnel.getLocalPhysInetListenPort();
+                    remoteTunnelInetAddr = tunnel.getLocalTunnelInetAddr();
+                    remoteTunnelInetComPort = tunnel.getLocalTunnelInetComPort();
+                    localTunnelInetAddr = tunnel.getRemoteTunnelInetAddr();
+                    interfaceName = tunnel.getLocalInterfaceName();
+                    tunnelNetwork = v4ServerMachine.getTunnelInetNet();
+
+                    v4ServerMachine.setRemoteTunnelInetAddr(tunnel.getRemoteTunnelInetAddr());
+
+                    connectConfig.updatePersistenceDatabase(tunnel);
+
+                    tunnel.setState(Constants.V4_TUNNEL_STATUS_OFFER);
+                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
             
-            PersistenceTunnel tunnel = v4ServerMachine.getV4Machine().createTunnelAsServer(
-                v4ServerMachine,
-                Integer.parseInt(remoteIdOption.getString()),
-                Constants.TUNNEL_ENDPOINT_TYPE_SERVER,
-                Constants.TUNNEL_ENDPOINT_TYPE_CLIENT,
-                v4ServerMachine.getLocalPhysInetAddr(),
-                remotePhysInetAddrOption.getIpAddress(),
-                remotePhysInetComPortOption.getUnsignedInt(),
-                StringUtils.substringBefore(remoteTunnelInetAddr.toInetAddress().getHostAddress(), IPv4Address.PREFIX_LEN_SEPARATOR),
-                v4ServerMachine.getLocalTunnelInetAddr(),
-                v4ServerMachine.getTunnelInetNet(),
-                false);
+            replyMsg.putOption(remoteIdOption);
+            replyMsg.putOption(new TunnelIdOption(tunnelId, true));
+            replyMsg.putOption(new RemoteWgPublicKeyOption(remoteWgPublicKey, true));
+            replyMsg.putOption(new RemotePhysInetAddrOption(remotePhysInetAddr, true));
+            replyMsg.putOption(new RemotePhysInetComPortOption(remotePhysInetComPort, true));
+            replyMsg.putOption(new RemotePhysInetListenPortOption(remotePhysInetListenPort, true));
+            replyMsg.putOption(new RemoteTunnelInetAddrOption(remoteTunnelInetAddr, true));
+            replyMsg.putOption(new RemoteTunnelInetComPortOption(remoteTunnelInetComPort, true));
+            replyMsg.putOption(new LocalTunnelInetAddrOption(localTunnelInetAddr, true));
+            replyMsg.putOption(new InterfaceNameOption(interfaceName, true));
+            replyMsg.putOption(new TunnelNetworkOption(tunnelNetwork, true));
+            replyMsg.putOption(new GenericResponseOption(discoverResponse, true));
 
-            if (tunnel != null && tunnel.getLocalTunnelInetAddr() != null && tunnel.getRemoteTunnelInetAddr() != null) {
-                
-                v4ServerMachine.setPersistenceTunnel(tunnel);
-                
-                replyMsg = new V4Message(requestMsg.getLocalAddress(),
-                    new InetSocketAddress(InetAddress.getByName(remotePhysInetAddrOption.getIpAddress()),
-                    (int) remotePhysInetComPortOption.getUnsignedInt()));
-                replyMsg.setOp((short) Constants.V4_OP_REPLY);
-                replyMsg.setHtype(requestMsg.getHtype());
-                replyMsg.setTransactionId(requestMsg.getTransactionId());
-                replyMsg.setClientAddr(requestMsg.getClientAddr());
-                replyMsg.setClientPort(requestMsg.getClientPort());
-                replyMsg.setServerAddr(v4ServerMachine.getLocalPhysInetSockAddr().getAddress());
-                replyMsg.setServerPort(v4ServerMachine.getLocalPhysInetSockAddr().getPort());
-                
-                replyMsg.setMessageType((short) Constants.V4_MESSAGE_TYPE_OFFER);
-                replyMsg.setMessageSender((short) Constants.V4_MESSAGE_SENDER_SERVER);
-                
-                replyMsg.putOption(remoteIdOption);
-                replyMsg.putOption(new TunnelIdOption(tunnel.getId().toString(), true));
-                replyMsg.putOption(new RemoteWgPublicKeyOption(tunnel.getLocalPublicKey(), true));
-                replyMsg.putOption(new RemotePhysInetAddrOption(tunnel.getLocalPhysInetAddr(), true));
-                replyMsg.putOption(new RemotePhysInetComPortOption(tunnel.getLocalPhysInetComPort(), true));
-                replyMsg.putOption(new RemotePhysInetListenPortOption(tunnel.getLocalPhysInetListenPort(), true));
-                replyMsg.putOption(new RemoteTunnelInetAddrOption(tunnel.getLocalTunnelInetAddr(), true));
-                replyMsg.putOption(new RemoteTunnelInetComPortOption(tunnel.getLocalTunnelInetComPort(), true));
-                replyMsg.putOption(new LocalTunnelInetAddrOption(tunnel.getRemoteTunnelInetAddr(), true));
-                replyMsg.putOption(new InterfaceNameOption(tunnel.getLocalInterfaceName(), true));
-                replyMsg.putOption(new TunnelNetworkOption(v4ServerMachine.getTunnelInetNet(), true));
-                replyMsg.putOption(new GenericResponseOption(discoverResponse, false));
-                
-                v4ServerMachine.setRemoteTunnelInetAddr(tunnel.getRemoteTunnelInetAddr());
-                
-                connectConfig.updatePersistenceDatabase(tunnel);
-                
-                tunnel.setState(Constants.V4_TUNNEL_STATUS_OFFER);
-                Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
-
-                sendReply = true;
-            }
+            sendReply = true;
         } catch (Exception ex) {
             log.error("Unable to process V4 Discover: " + ex);
         }
