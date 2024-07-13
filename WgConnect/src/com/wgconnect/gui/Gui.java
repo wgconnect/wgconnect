@@ -40,6 +40,7 @@ import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 
 /**
  * Gui
@@ -118,19 +119,21 @@ public class Gui extends Application {
     }
     
     private static void addTunnelRow(PersistenceTunnel tunnel) {
-        for (Node node : primaryVBox.getChildren()) {
-            if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
-                TunnelRow row = (TunnelRow) node;
-                if (StringUtils.equals(tunnel.getLocalPublicKey(), row.getTunnel().getLocalPublicKey()) &&
-                    StringUtils.equals(tunnel.getRemotePublicKey(), row.getTunnel().getRemotePublicKey())) {
-                    return;
+        if (INSTANCE != null) {
+            for (Node node : primaryVBox.getChildren()) {
+                if (StringUtils.equals(node.getId(), ID_TUNNEL_ROW)) {
+                    TunnelRow row = (TunnelRow) node;
+                    if (StringUtils.equals(tunnel.getLocalPublicKey(), row.getTunnel().getLocalPublicKey())
+                        && StringUtils.equals(tunnel.getRemotePublicKey(), row.getTunnel().getRemotePublicKey())) {
+                        return;
+                    }
                 }
             }
-        }
 
-        TunnelRow tunnelRow = new TunnelRow(tunnel, windowWidth, (String) tunnelRowColors.dequeue()).init();
-        tunnelRow.setId(ID_TUNNEL_ROW);
-        primaryVBox.getChildren().add(tunnelRow);
+            TunnelRow tunnelRow = new TunnelRow(tunnel, windowWidth, (String) tunnelRowColors.dequeue()).init();
+            tunnelRow.setId(ID_TUNNEL_ROW);
+            primaryVBox.getChildren().add(tunnelRow);
+        }
     }
 
     public static void refreshAllTunnelRows() {
