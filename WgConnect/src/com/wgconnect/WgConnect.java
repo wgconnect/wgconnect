@@ -34,7 +34,6 @@ import inet.ipaddr.IPAddress;
 import inet.ipaddr.IPAddress.IPVersion;
 import inet.ipaddr.IPAddressString;
 import inet.ipaddr.IncompatibleAddressException;
-import inet.ipaddr.ipv4.IPv4Address;
 import inet.ipaddr.ipv4.IPv4AddressSegment;
 import inet.ipaddr.ipv6.IPv6Address;
 import inet.ipaddr.ipv6.IPv6AddressSegment;
@@ -353,7 +352,7 @@ public class WgConnect implements Runnable {
             log.info(msg);
             
             // Start the GUI
-            if (guiEnable) {
+            if (guiEnable && SystemUtils.IS_OS_LINUX) {
                 new Thread() {
                     @Override
                     public void run() {
