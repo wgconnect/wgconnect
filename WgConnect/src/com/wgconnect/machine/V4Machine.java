@@ -31,7 +31,6 @@ import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.processor.V4DiscoverProcessor;
 import com.wgconnect.machine.processor.V4PingProcessor;
 
-import com.wgtools.InterfaceDeviceManager;
 import com.wgtools.Wg;
 
 import inet.ipaddr.AddressStringException;
@@ -82,6 +81,7 @@ import org.jboss.netty.channel.socket.nio.NioDatagramChannelFactory;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import com.wgtools.DeviceManagerInterface;
 
 /**
  * V4Machine
@@ -89,7 +89,7 @@ import org.jboss.netty.handler.logging.LoggingHandler;
  * A V4 machine that sends and receives configuration messages to and from other V4 machines.
  * 
  * @author JagornetDhcp version: A. Gregory Rabil
- * @author WgConnect version: wgconnect@protonmail.com
+ * @author WgConnect version: wgconnect@proton.me
  */
 public class V4Machine implements Runnable {
 
@@ -1249,7 +1249,7 @@ public class V4Machine implements Runnable {
                     return null;
                 }
 
-                wg.setDeviceState(tunnel.getLocalInterfaceName(), InterfaceDeviceManager.InterfaceDeviceState.UP);
+                wg.setDeviceState(tunnel.getLocalInterfaceName(), DeviceManagerInterface.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1280,7 +1280,7 @@ public class V4Machine implements Runnable {
                 addDatagramChannel(tunnel.getLocalTunnelInetSockAddr());
                 
                 // Add the tunnel to the GUI
-                Gui.addTunnel(tunnel);
+                WgConnect.guiAddTunnel(tunnel);
             }
         } else {
             tunnel.setLocalInterfaceName(referenceTunnel.getLocalInterfaceName());
@@ -1312,7 +1312,7 @@ public class V4Machine implements Runnable {
             addDatagramChannel(tunnel.getLocalTunnelInetSockAddr());
             
             // Add the tunnel to the GUI
-            Gui.addTunnel(tunnel);
+            WgConnect.guiAddTunnel(tunnel);
         }
 
         WgConnect.addTunnel(tunnel);
@@ -1417,7 +1417,7 @@ public class V4Machine implements Runnable {
                 }
 
                 wg.setDeviceState(tunnel.getLocalInterfaceName(),
-                    InterfaceDeviceManager.InterfaceDeviceState.UP);
+                    DeviceManagerInterface.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1659,7 +1659,7 @@ public class V4Machine implements Runnable {
                         msg.putOption(new TunnelNetworkOption(clientMachine.getTunnelInetNet(), true));
                         
                         tunnel.setState(Constants.V4_TUNNEL_STATUS_REQUEST);
-                        Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                        WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                     } else {
                         log.info("Unable to create a V4 tunnel");
                     }
@@ -1686,7 +1686,7 @@ public class V4Machine implements Runnable {
                 PersistenceTunnel tunnel = WgConnect.getTunnelByTunnelId(tunnelIdOption.getString());
                 if (tunnel != null) {
                     tunnel.setState(Constants.TUNNEL_STATUS_TUNNEL_PING);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
 
                     V4Message msg = new V4Message(tunnel.getLocalTunnelInetSockAddr(),
                         new InetSocketAddress(tunnel.getRemoteTunnelInetAddr(), (int) tunnel.getRemoteTunnelInetComPort()));
@@ -1730,7 +1730,7 @@ public class V4Machine implements Runnable {
                 if (tunnel != null) {
                     tunnel.setState(Constants.TUNNEL_STATUS_UP);
                     WgConnect.printTunnelCompleteMessage(tunnel);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
         }
