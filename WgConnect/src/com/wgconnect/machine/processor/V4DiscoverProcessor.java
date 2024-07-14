@@ -200,7 +200,7 @@ public class V4DiscoverProcessor extends BaseV4Processor {
                     connectConfig.updatePersistenceDatabase(tunnel);
 
                     tunnel.setState(Constants.V4_TUNNEL_STATUS_OFFER);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
             
