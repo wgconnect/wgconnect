@@ -27,7 +27,7 @@ import com.wgconnect.core.util.Constants;
 import com.wgconnect.core.util.Utils;
 import com.wgconnect.core.util.WgConnectLogger;
 import com.wgconnect.db.persistence.PersistenceTunnel;
-import com.wgconnect.gui.Gui;
+import com.wgconnect.gui.linux.LinuxGui;
 
 import inet.ipaddr.AddressStringException;
 import inet.ipaddr.IPAddress;
@@ -62,8 +62,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javafx.application.Application;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -79,6 +77,7 @@ import picocli.CommandLine.Model.CommandSpec;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParseResult;
 import picocli.CommandLine.Spec;
+import com.wgconnect.gui.Gui;
 
 /**
  * WgConnect
@@ -201,7 +200,8 @@ public class WgConnect implements Runnable {
     @Option(names = {"-g", "--gui"},  defaultValue = "false",
         description = "Enable the GUI.")
     protected static boolean guiEnable = false;
-
+    protected static Gui guiInterface = null;
+    
     @Option(names = {"-h", "--help"}, usageHelp = true, defaultValue = "false",
         description = "Show this help page, then exit.")
     protected boolean helpRequested;
@@ -352,15 +352,14 @@ public class WgConnect implements Runnable {
             log.info(msg);
             
             // Start the GUI
-            if (guiEnable && SystemUtils.IS_OS_LINUX) {
-                new Thread() {
-                    @Override
-                    public void run() {
-                        Application.launch(Gui.class);
-                    }
-                }.start();
+            if (guiEnable) {
+                if (SystemUtils.IS_OS_FREE_BSD || SystemUtils.IS_OS_NET_BSD || SystemUtils.IS_OS_OPEN_BSD) {
+                    
+                } else {
+                    guiInterface = new LinuxGui();
+                }
                 
-                Gui.waitForWindowShown();
+                guiInterface.initialize();
             }
             
             // Start the tunnels refresh thread
@@ -1469,6 +1468,19 @@ public class WgConnect implements Runnable {
             }
         });
     }
+    
+    public static void guiAddTunnel(PersistenceTunnel tunnel) {
+        if (guiInterface != null) {
+            guiInterface.addTunnel(tunnel);
+        }
+    }
+    
+    public static void guiRefreshTunnelRowColumns(PersistenceTunnel tunnel, int... columnIndices) {
+        if (guiInterface != null) {
+            guiInterface.refreshTunnelRowColumns(tunnel, columnIndices);
+        }
+    }
+
     
     private static IHelpFactory createCustomizedUsageHelp() {
         return new IHelpFactory() {
