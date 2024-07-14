@@ -29,7 +29,6 @@ import com.wgconnect.db.persistence.PersistenceTunnel;
 import com.wgconnect.db.h2.PersistenceDatabaseManagerH2;
 import com.wgconnect.db.PersistenceDatabaseManagerImpl;
 import com.wgconnect.db.PersistenceDatabaseManager;
-import com.wgconnect.gui.Gui;
 
 import com.wgtools.Wg;
 import inet.ipaddr.IPAddress.IPVersion;
@@ -270,7 +269,7 @@ public class ConnectConfig {
                                 tunnel.setKeepalive(Integer.parseInt(persistentKeepalives.get(persistentKeepalive)));
 
                                 tunnel.setState(Constants.TUNNEL_STATUS_UP);
-                                Gui.addTunnel(tunnel);
+                                WgConnect.guiAddTunnel(tunnel);
 
                                 if (validator.isValid(remotePhysInetAddrInfo[0])) {
                                     tunnel.setRemotePhysInetAddr(remotePhysInetAddrInfo[0]);
@@ -381,7 +380,7 @@ public class ConnectConfig {
                                 tunnel.setKeepalive(Integer.parseInt(persistentKeepalive));
 
                                 tunnel.setState(Constants.TUNNEL_STATUS_UP);
-                                Gui.addTunnel(tunnel);
+                                WgConnect.guiAddTunnel(tunnel);
 
                                 if (validator.isValid(clientPhysInetAddrInfo[0])) {
                                     tunnel.setRemotePhysInetAddr(clientPhysInetAddrInfo[0]);
