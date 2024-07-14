@@ -90,7 +90,7 @@ public class V6PingProcessor extends BaseV6Processor {
 
         tunnel.setState(Constants.TUNNEL_STATUS_UP);
         WgConnect.printTunnelCompleteMessage(tunnel);
-        Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+        WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
         
         connectConfig.updatePersistenceDatabase(tunnel);
       
