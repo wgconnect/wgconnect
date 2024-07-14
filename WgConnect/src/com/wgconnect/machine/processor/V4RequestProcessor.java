@@ -142,7 +142,7 @@ public class V4RequestProcessor extends BaseV4Processor {
             if (wg.getCommandExitCode() == Wg.getCommandSuccessCode()) {
                 try {
                     tunnel.setState(Constants.V4_TUNNEL_STATUS_REQUEST);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS, Gui.COLUMN_INDEX_ENDPOINTS, Gui.COLUMN_INDEX_PUBLIC_KEYS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS, Gui.COLUMN_INDEX_ENDPOINTS, Gui.COLUMN_INDEX_PUBLIC_KEYS);
 
                     connectConfig.updatePersistenceDatabase(tunnel);
 
@@ -166,7 +166,7 @@ public class V4RequestProcessor extends BaseV4Processor {
                 }
                 
                 // Add the tunnel to the GUI
-                Gui.addTunnel(tunnel);
+                WgConnect.guiAddTunnel(tunnel);
             }
         } else {
             switch ((int) offerResponseOption.getUnsignedInt()) {
@@ -197,7 +197,7 @@ public class V4RequestProcessor extends BaseV4Processor {
                         
                         if (tunnel != null) {
                             tunnel.setState(Constants.V4_TUNNEL_STATUS_DISCOVER);
-                            Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                            WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
 
                             v4ServerMachine.setPersistenceTunnel(tunnel);
 
@@ -230,7 +230,7 @@ public class V4RequestProcessor extends BaseV4Processor {
                             connectConfig.updatePersistenceDatabase(tunnel);
                             
                             tunnel.setState(Constants.V4_TUNNEL_STATUS_OFFER);
-                            Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                            WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                         }
                     } catch (Exception ex) {
                     log.error("Unable to process V4 Discover: " + ex);
