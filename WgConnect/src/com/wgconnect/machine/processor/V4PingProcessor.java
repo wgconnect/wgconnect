@@ -25,11 +25,11 @@ import com.wgconnect.core.option.machine.TunnelIdOption;
 import com.wgconnect.core.util.Constants;
 import com.wgconnect.core.util.WgConnectLogger;
 import com.wgconnect.db.persistence.PersistenceTunnel;
-import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.V4Machine;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import com.wgconnect.gui.Gui;
 
 /**
  * V4PingProcessor
@@ -97,7 +97,7 @@ public class V4PingProcessor extends BaseV4Processor {
 
         tunnel.setState(Constants.TUNNEL_STATUS_UP);
         WgConnect.printTunnelCompleteMessage(tunnel);
-        Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+        WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
         
         connectConfig.updatePersistenceDatabase(tunnel);
        
