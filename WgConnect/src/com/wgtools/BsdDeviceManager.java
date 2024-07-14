@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 wgdhcp@protonmail.com. All Rights Reserved.
+ * Copyright 2024 wgconnect@proton.me. All Rights Reserved.
  *
  * WgDhcp is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ import org.apache.commons.validator.routines.InetAddressValidator;
  * 
  * @author: wgconnect@proton.me
  */
-public class BsdDeviceManager implements InterfaceDeviceManager {
+public class BsdDeviceManager implements DeviceManagerInterface {
     
     private static final WgConnectLogger log = WgConnectLogger.getLogger(BsdDeviceManager.class);    
 
