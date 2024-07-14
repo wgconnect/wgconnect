@@ -43,7 +43,6 @@ import inet.ipaddr.ipv6.IPv6Address;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -191,7 +190,7 @@ public class V6SolicitProcessor extends BaseV6Processor {
                     connectConfig.updatePersistenceDatabase(tunnel);
 
                     tunnel.setState(Constants.V6_TUNNEL_STATUS_SOLICIT);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
             
