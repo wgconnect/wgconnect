@@ -40,7 +40,7 @@ import org.apache.commons.validator.routines.InetAddressValidator;
  * 
  * @author: wgconnect@proton.me
  */
-class LinuxDeviceManager implements InterfaceDeviceManager {
+class LinuxDeviceManager implements DeviceManagerInterface {
     
     private static final WgConnectLogger log = WgConnectLogger.getLogger(LinuxDeviceManager.class);    
 
