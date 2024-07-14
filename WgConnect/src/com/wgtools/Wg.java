@@ -20,7 +20,7 @@ package com.wgtools;
 import com.google.common.collect.ObjectArrays;
 
 import com.wgconnect.core.util.WgConnectLogger;
-import com.wgtools.InterfaceDeviceManager.InterfaceDeviceState;
+import com.wgtools.DeviceManagerInterface.InterfaceDeviceState;
 
 import inet.ipaddr.IPAddress.IPVersion;
 
@@ -95,9 +95,9 @@ public class Wg implements Runnable {
     
     private int commandExitCode;
 
-    private static final InterfaceDeviceManager linuxDeviceMgr = new LinuxDeviceManager();
-    private static final InterfaceDeviceManager freeBsdDeviceMgr = new BsdDeviceManager();
-    private InterfaceDeviceManager deviceMgr;
+    private static final DeviceManagerInterface linuxDeviceMgr = new LinuxDeviceManager();
+    private static final DeviceManagerInterface freeBsdDeviceMgr = new BsdDeviceManager();
+    private DeviceManagerInterface deviceMgr;
     
     public static final String OPTION_ALL = "all";
     public static final String OPTION_INTERFACES = "interfaces";
@@ -126,7 +126,7 @@ public class Wg implements Runnable {
 
     @Spec CommandSpec spec;
 
-    public Wg(InterfaceDeviceManager deviceMgr) {
+    public Wg(DeviceManagerInterface deviceMgr) {
         this.deviceMgr = deviceMgr;
         
         init();
@@ -151,7 +151,7 @@ public class Wg implements Runnable {
         }
     }
     
-    public void setDeviceManager(InterfaceDeviceManager deviceMgr) {
+    public void setDeviceManager(DeviceManagerInterface deviceMgr) {
         this.deviceMgr = deviceMgr;
     }
     
@@ -490,7 +490,7 @@ public class Wg implements Runnable {
         return lines;
     }
     
-    public synchronized InterfaceDeviceManager getInterfaceDeviceManager() {
+    public synchronized DeviceManagerInterface getInterfaceDeviceManager() {
         return deviceMgr;
     }
     
