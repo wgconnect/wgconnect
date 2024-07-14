@@ -31,7 +31,6 @@ import com.wgconnect.db.persistence.PersistenceTunnel;
 import com.wgconnect.gui.Gui;
 import com.wgconnect.machine.processor.V6PingProcessor;
 
-import com.wgtools.InterfaceDeviceManager;
 import com.wgtools.Wg;
 
 import inet.ipaddr.AddressStringException;
@@ -82,6 +81,7 @@ import org.jboss.netty.channel.socket.nio.NioDatagramChannelFactory;
 import org.jboss.netty.handler.execution.ExecutionHandler;
 import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.handler.logging.LoggingHandler;
+import com.wgtools.DeviceManagerInterface;
 
 /**
  * V6Machine
@@ -1244,7 +1244,7 @@ public class V6Machine implements Runnable {
                 }
 
                 wg.setDeviceState(tunnel.getLocalInterfaceName(),
-                    InterfaceDeviceManager.InterfaceDeviceState.UP);
+                    DeviceManagerInterface.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1276,7 +1276,7 @@ public class V6Machine implements Runnable {
                 addDatagramChannel(tunnel.getLocalTunnelInetSockAddr());
                 
                 // Add the tunnel to the GUI
-                Gui.addTunnel(tunnel);
+                WgConnect.guiAddTunnel(tunnel);
             }
         } else {
             tunnel.setLocalInterfaceName(referenceTunnel.getLocalInterfaceName());
@@ -1309,7 +1309,7 @@ public class V6Machine implements Runnable {
             addDatagramChannel(tunnel.getLocalTunnelInetSockAddr());
             
             // Add the tunnel to the GUI
-            Gui.addTunnel(tunnel);
+            WgConnect.guiAddTunnel(tunnel);
         }
 
         WgConnect.addTunnel(tunnel);
@@ -1415,7 +1415,7 @@ public class V6Machine implements Runnable {
                 }
 
                 wg.setDeviceState(tunnel.getLocalInterfaceName(),
-                    InterfaceDeviceManager.InterfaceDeviceState.UP);
+                    DeviceManagerInterface.InterfaceDeviceState.UP);
                 if (wg.getCommandExitCode() == Wg.getCommandFailureCode()) {
                     log.error("Unable to set the link state for WgConnect device " + tunnel.getLocalInterfaceName());
                     return null;
@@ -1646,7 +1646,7 @@ public class V6Machine implements Runnable {
                         msg.putOption(new TunnelNetworkOption(clientMachine.getTunnelInetNet(), false));
                         
                         tunnel.setState(Constants.V6_TUNNEL_STATUS_REQUEST);
-                        Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                        WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                     } else {
                         log.info("Unable to create a V6 tunnel");
                     }
@@ -1673,7 +1673,7 @@ public class V6Machine implements Runnable {
                 PersistenceTunnel tunnel = WgConnect.getTunnelByTunnelId(tunnelIdOption.getString());
                 if (tunnel != null) {
                     tunnel.setState(Constants.TUNNEL_STATUS_TUNNEL_PING);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
 
                     V6Message msg = new V6Message(tunnel.getLocalTunnelInetSockAddr(),
                         new InetSocketAddress(tunnel.getRemoteTunnelInetAddr(), (int) tunnel.getRemoteTunnelInetComPort()));
@@ -1711,7 +1711,7 @@ public class V6Machine implements Runnable {
                 if (tunnel != null) {
                     tunnel.setState(Constants.TUNNEL_STATUS_UP);
                     WgConnect.printTunnelCompleteMessage(tunnel);
-                    Gui.refreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
+                    WgConnect.guiRefreshTunnelRowColumns(tunnel, Gui.COLUMN_INDEX_STATUS);
                 }
             }
         }
