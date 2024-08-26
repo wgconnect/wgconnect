@@ -1,7 +1,7 @@
 
 = WgConnect
 
-An IPv4/IPv6 Wireguard connection server and client written in Java
+A peer-to-peer IPv4/IPv6 Wireguard connection server and client written in Java
 
 == Overview
 
